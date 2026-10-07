@@ -144,9 +144,10 @@ ggplot(ps_dat_simple, aes(x = same_population, y = acoustic_distance, fill = sam
   geom_violin(alpha = 0.6, color = NA) +
   geom_boxplot(width = 0.15, outlier.shape = NA, fill = "white") +
   facet_wrap(~ species, nrow = 1) +
-  scale_x_discrete(labels = c("0" = "Between\npopulations", "1" = "Within\npopulation")) +
+  scale_x_discrete(labels = c("0" = "Between populations", "1" = "Within population")) +
   scale_fill_viridis_d(option = "mako", begin = 0.3, end = 0.8, guide = "none") +
-  labs(x = NULL, y = "Acoustic distance")
+  labs(x = NULL, y = "Acoustic distance") +
+  theme(axis.text.x = element_text(size = rel(0.7), angle = 45, hjust = 1))
 
 ```
 
@@ -305,6 +306,21 @@ extended_summary(
 
 ```
 
+::: {.alert .alert-info}
+## Summary {.unnumbered .unlisted}
+
+### Model summary {.unnumbered .unlisted}
+
+-   Within-population pairs are credibly more similar than between-population pairs for *Hypoxantha* (species:same_population1 = -0.164 SD, 95% CI [-0.197, -0.131]) and, more strongly, for *Ruficollis* (-0.463 SD, 95% CI [-0.496, -0.430]) — roughly a three-fold larger effect. Both models converged cleanly (Rhat = 1, no credible-interval-crossing issues).
+-   The isolation-by-distance slope is not credible for *Hypoxantha* (-0.267 SD, 95% CI [-1.160, 0.631]) but is credible and negative for *Ruficollis* (-0.366 SD, 95% CI [-0.435, -0.295]). With only 3-6 independent population pairs per species, this estimate is informed by very little independent replication and should be read as descriptive.
+
+### Interpretation {.unnumbered .unlisted}
+
+-   Simple songs carry genuine, population-level geographic structure in both species with more than one population, confirming there is local song variation for sympatry to act on in Step 3.
+-   The much stronger structuring in *Ruficollis* suggests either more restricted song learning/dispersal or more time for populations to diverge in that species than in *Hypoxantha*.
+-   The negative, rather than positive, isolation-by-distance trend in *Ruficollis* indicates that this population structure is not simply accumulating with geographic distance as under neutral drift — distant populations are not more acoustically different than nearby ones. This is consistent with song divergence being driven by local factors (habitat acoustics, drift in small founder populations, or selective pressures such as sympatry with congeners) rather than by isolation by distance per se, though the small number of population pairs means this should be treated as a hypothesis for the sympatry-focused steps rather than a confirmed result.
+:::
+
 # Complex songs
 
 Range-wide variation by species (`mean_within` and `mean_between` are mean acoustic distances among songs of different individuals within and between populations; the ratio is > 1 when songs are population-structured):
@@ -324,9 +340,10 @@ ggplot(ps_dat_complex, aes(x = same_population, y = acoustic_distance, fill = sa
   geom_violin(alpha = 0.6, color = NA) +
   geom_boxplot(width = 0.15, outlier.shape = NA, fill = "white") +
   facet_wrap(~ species, nrow = 1) +
-  scale_x_discrete(labels = c("0" = "Between\npopulations", "1" = "Within\npopulation")) +
+  scale_x_discrete(labels = c("0" = "Between populations", "1" = "Within population")) +
   scale_fill_viridis_d(option = "mako", begin = 0.3, end = 0.8, guide = "none") +
-  labs(x = NULL, y = "Acoustic distance")
+  labs(x = NULL, y = "Acoustic distance") +
+  theme(axis.text.x = element_text(size = rel(0.7), angle = 45, hjust = 1))
 
 ```
 
@@ -484,6 +501,21 @@ extended_summary(
 )
 
 ```
+
+::: {.alert .alert-info}
+## Summary {.unnumbered .unlisted}
+
+### Model summary {.unnumbered .unlisted}
+
+-   The within- vs. between-population effect is not credible for *Hypoxantha* (0.019 SD, 95% CI [-0.028, 0.065], overlapping zero and even slightly positive in direction) and is credible but smaller than in simple songs for *Ruficollis* (-0.267 SD, 95% CI [-0.371, -0.165]).
+-   Isolation by distance is not credible for either species (*Hypoxantha*: -0.889 SD, 95% CI [-2.671, 0.428]; *Ruficollis*: -0.030 SD, 95% CI [-1.388, 1.327]), with very wide intervals reflecting the small number of independent population pairs.
+
+### Interpretation {.unnumbered .unlisted}
+
+-   Unlike simple songs, complex songs carry little to no detectable population-level geographic signal in *Hypoxantha*, and a weaker signal than simple songs in *Ruficollis*.
+-   This asymmetry suggests complex songs are more stereotyped/conserved across each species' range — plausibly because they are under stronger stabilizing selection (e.g., species or mate recognition), are more constrained by shared motor templates, or are simply noisier measurements given fewer recordings per population.
+-   Practically, Step 3's test for sympatry-driven shifts has much less population-level variation to work with for complex songs than for simple songs, so any sympatry effect detected later for complex songs is acting on a flatter geographic baseline.
+:::
 
 <!-- add packages used, system details and versions  -->
 

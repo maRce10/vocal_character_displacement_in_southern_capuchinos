@@ -431,8 +431,15 @@ print(div_simple$fixef)
 ::: {.alert .alert-info}
 ##### Summary {.unnumbered .unlisted}
 
-*To be written after the sympatry-only models are fitted.*
+###### Model summary {.unnumbered .unlisted}
 
+-   Sympatric heterospecific pairs have credibly greater PCA-based acoustic distance than allopatric pairs (sympatry1 = 0.227 SD, 95% CI [0.204, 0.250]), with clean convergence (Rhat = 1, no CIs near zero).
+-   The model produced divergent transitions (858/20,000 draws, 4.3%), concentrated in the species-pair random-effect SD (estimated from only 3 levels) rather than spread across chains. The sympatry coefficient is essentially identical in divergent and non-divergent draws (median 0.236 vs. 0.227, overlapping 95% ranges), so the divergences reflect a weakly identified variance component and do not bias the effect of interest.
+
+###### Interpretation {.unnumbered .unlisted}
+
+-   Simple songs of heterospecific pairs are more acoustically different where the species co-occur than where they do not — the signature predicted by sound-based character displacement (selection against acoustic confusion in sympatry, e.g. via reproductive interference or mistaken aggression).
+-   As detailed in the species-pair breakdown below, this pattern is not an artifact of one species pair dominating the pooled estimate: all three heterospecific pairs individually show a credible positive sympatry effect, though its magnitude differs between pairs.
 :::
 
 ##### Contrasts by species pair
@@ -1174,8 +1181,15 @@ print(div_complex$fixef)
 ::: {.alert .alert-info}
 ##### Summary {.unnumbered .unlisted}
 
-*To be written after the sympatry-only models are fitted.*
+###### Model summary {.unnumbered .unlisted}
 
+-   Sympatric pairs have credibly greater PCA-based acoustic distance than allopatric pairs (sympatry1 = 0.042 SD, 95% CI [0.009, 0.076]), but the effect is roughly 5-fold smaller than for simple songs (0.227 SD) and its CI sits close to zero.
+-   Divergent transitions were fewer than for simple songs (383/20,000 draws, 1.9%) and, as before, the sympatry coefficient is essentially unchanged between divergent and non-divergent draws (median 0.041 vs. 0.043), so the divergences do not bias this estimate.
+
+###### Interpretation {.unnumbered .unlisted}
+
+-   Complex songs show the same qualitative sign of character displacement as simple songs (greater divergence in sympatry) but a much weaker pooled signal.
+-   The species-pair breakdown below shows this weak pooled effect is driven almost entirely by one pair (*Hypoxantha*-*Palustris*); the other two heterospecific pairs show no credible sympatry effect for complex songs, unlike simple songs where all three pairs diverged credibly. Complex songs therefore appear to be a less general channel for sound-based character displacement in this system than simple songs.
 :::
 
 ##### Contrasts by species pair
@@ -1563,8 +1577,16 @@ if (!is.null(pop_contrasts_by_feature_complex)) print(pop_contrasts_by_feature_c
 ::: {.alert .alert-info}
 ##### Summary {.unnumbered .unlisted}
 
-*To be written after the sympatry-only models are fitted.*
+###### Model summary {.unnumbered .unlisted}
 
+-   Of the 8 trait-level models, 6 have credible sympatry effects. Element-level PCA distance shows by far the largest effect (1.279 SD, 95% CI [1.252, 1.306]) — an order of magnitude larger than any single song-level feature. Among song-level features, frequency range (0.038, 95% CI [0.001, 0.075]), gap duration (0.063, 95% CI [0.030, 0.097]) and element diversity/mst (0.044, 95% CI [0.010, 0.078]) are credibly *positive* (greater distance in sympatry), while peak frequency (-0.063, 95% CI [-0.097, -0.029]) and song rate (-0.082, 95% CI [-0.116, -0.049]) are credibly *negative* (smaller distance in sympatry). Number of elements (0.000) and song duration (0.005) show no credible effect.
+-   Divergent transitions stayed below 2% for every feature, and the sympatry coefficient is essentially unchanged between divergent and non-divergent draws in every model, so none of these conclusions hinge on the divergences.
+
+###### Interpretation {.unnumbered .unlisted}
+
+-   The character-displacement signal in complex songs is concentrated at the fine-grained element level: element-level acoustic distance is massively amplified in sympatry, far beyond what the overall song-level PCA-based model (0.042 SD) or any single song-level feature shows. Averaging element-level detail into song-level descriptors appears to dilute a strong underlying signal.
+-   Song-level features show a mosaic rather than uniform divergence: gap duration, frequency range and element diversity/mst diverge modestly in sympatry (consistent with selection against acoustic confusion), but peak frequency and song rate actually *converge* in sympatry — heterospecific pairs sound more alike in pace and dominant frequency where they co-occur than where they do not.
+-   This convergence in frequency and rate is the opposite of classical character displacement and is more consistent with shared ecological/acoustic constraints in sympatry (e.g. adaptation to the same habitat acoustics, morphological convergence in body size, or selection on these particular features for interspecific territorial signalling) acting alongside divergence in other traits. Complex-song divergence in sympatry is therefore trait-specific rather than a wholesale shift of the song.
 :::
 
 ## Combined results heatmap

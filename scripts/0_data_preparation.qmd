@@ -788,6 +788,20 @@ ps_dat_simple <- population_structure_data(pairs_simple)
 
 ```
 
+::: {.alert .alert-info}
+## Summary {.unnumbered .unlisted}
+
+### Model summary {.unnumbered .unlisted}
+
+-   Element-level PCA on simple songs retained 4 PCs (broken-stick criterion), explaining 78.8% of acoustic variance.
+-   Song-level features were more redundant: song duration correlated strongly with both song rate (r = -0.80) and number of elements (r = 0.78), and frequency range with element diversity/mst (r = 0.80), so the song-level PCA collapsed to a single broken-stick PC explaining only 47.6% of variance.
+
+### Interpretation {.unnumbered .unlisted}
+
+-   Simple-song element structure is multidimensional — four largely independent axes of spectro-temporal variation are needed to summarize it — whereas the song-level description is effectively one-dimensional, dominated by a timing/pace axis (duration, rate and number of elements move together).
+-   The element-level PCA distance therefore carries most of the fine-grained acoustic information for simple songs, while the single song-level PC mainly captures how fast/long a song is rather than independent facets of structure; downstream models based on element-level distance should be more sensitive to subtle divergence than those based on the single song-level PC.
+:::
+
 # Complex songs
 
 ## Prepare element level data
@@ -1454,6 +1468,21 @@ occ_complex <- species_occurrence(df_clean_complex)
 ps_dat_complex <- population_structure_data(pairs_complex)
 
 ```
+
+::: {.alert .alert-info}
+## Summary {.unnumbered .unlisted}
+
+### Model summary {.unnumbered .unlisted}
+
+-   Complex-song element-level PCA retained 5 PCs explaining 81.5% of variance (vs. 4 PCs/78.8% for simple songs), and the song-level PCA retained 2 PCs explaining 73.7% of variance (vs. 1 PC/47.6% for simple songs).
+-   Song-level features were again highly collinear, most strikingly number of elements with song duration (r = 0.96) and with element diversity/mst (r = 0.83).
+
+### Interpretation {.unnumbered .unlisted}
+
+-   Complex songs need more PCs to summarize both their elements and their overall structure, consistent with them being acoustically richer/more variable than simple songs.
+-   Unlike simple songs, the complex song-level description is not reducible to a single timing axis — a second, largely independent PC is needed — but the very high correlation between number of elements and song duration indicates complex songs are still built by lengthening songs mainly by adding elements rather than by varying element pacing.
+-   These differences matter for comparing the simple- and complex-song results in later steps: the complex-song PCA-based distance integrates more independent acoustic information than the simple-song one, and the single most problematic redundancy (elements/duration) should be interpreted as one signal, not two, wherever both appear among the significant per-feature results.
+:::
 
 # Save data for the analysis steps
 

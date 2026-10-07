@@ -282,6 +282,21 @@ print(rel_tab_simple)
 
 ```
 
+::: {.alert .alert-info}
+## Summary {.unnumbered .unlisted}
+
+### Model summary {.unnumbered .unlisted}
+
+-   Only two of the twelve focal-congener combinations have enough data to test (populations with and without the congener, plus congener reference populations elsewhere): *Ruficollis* vs. *Hypoxantha* and the reverse, *Hypoxantha* vs. *Ruficollis*. Neither co-occurrence effect is credible (*Ruficollis* vs. *Hypoxantha*: -0.228 SD, 95% CI [-0.778, 0.405]; *Hypoxantha* vs. *Ruficollis*: 0.004 SD, 95% CI [-0.537, 0.554]).
+-   The *Hypoxantha* vs. *Ruficollis* model shows a convergence warning (Rhat = 1.094) and a high divergent-transition rate (3128/20,000 draws, 15.6%), so its null result should be treated as inconclusive rather than as evidence of no shift. The *Ruficollis* vs. *Hypoxantha* model converged cleanly (Rhat = 1.003, 146/20,000 divergent, 0.7%) and its null result is more trustworthy.
+-   Expressed relative to the typical between-population difference for the focal species, both estimates are extremely imprecise (*Ruficollis* vs. *Hypoxantha*: -0.780, 95% CI [-5.768, 0.874]; *Hypoxantha* vs. *Ruficollis*: 0.005, 95% CI [-6.764, 4.826]) — the data cannot rule out a shift as large as several ordinary population differences in either direction.
+
+### Interpretation {.unnumbered .unlisted}
+
+-   With only one species pair testable and very few populations per comparison, Step 3 has essentially no statistical power for simple songs: the absence of a credible shift reflects data scarcity more than evidence against population-level convergence or divergence.
+-   The point estimates are at least directionally consistent with the Step 2 sympatry pattern: *Ruficollis* populations that co-occur with *Hypoxantha* trend towards acoustic convergence (negative shift) rather than divergence, the opposite of what simple-song character displacement in Step 2 would predict if it operated through this specific species' shift; given the width of the interval, however, this is only a weak hint and not a finding.
+:::
+
 ::: {.callout-note collapse="true"}
 ## Population shift model summaries
 
@@ -460,6 +475,21 @@ rel_tab_complex <- do.call(rbind, lapply(names(shift_models_complex), function(n
 print(rel_tab_complex)
 
 ```
+
+::: {.alert .alert-info}
+## Summary {.unnumbered .unlisted}
+
+### Model summary {.unnumbered .unlisted}
+
+-   As for simple songs, only *Ruficollis* vs. *Hypoxantha* and *Hypoxantha* vs. *Ruficollis* are testable. Neither co-occurrence effect is credible (*Ruficollis* vs. *Hypoxantha*: -0.346 SD, 95% CI [-0.980, 0.516]; *Hypoxantha* vs. *Ruficollis*: 0.052 SD, 95% CI [-0.537, 0.576]), and both models converged cleanly (Rhat = 1, divergent transitions below 1% in both).
+-   Relative to the typical between-population difference, both estimates are again extremely imprecise (*Ruficollis* vs. *Hypoxantha*: -1.450, 95% CI [-51.529, 0.908]; *Hypoxantha* vs. *Ruficollis*: 0.379, 95% CI [-4.070, 18.238]).
+
+### Interpretation {.unnumbered .unlisted}
+
+-   As with simple songs, Step 3 provides no credible evidence of population-level convergence or divergence for complex songs, but this is a statement about statistical power (one testable species pair, few populations) rather than about biology.
+-   Unlike the simple-song *Hypoxantha* vs. *Ruficollis* model, both complex-song models converged cleanly, so these null results are not undermined by sampling problems — they are genuinely uninformative given the data available, not masked by a convergence failure.
+-   Taken together with Step 2, the strongest and best-supported evidence for sound-based character displacement in this system remains the heterospecific sympatric-vs-allopatric contrast (Step 2), not the population-shift framing used here, which is limited by how few species pairs have the co-occurrence structure needed to test it.
+:::
 
 ::: {.callout-note collapse="true"}
 ## Population shift model summaries
