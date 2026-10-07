@@ -1,0 +1,32 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+desktop.ini
+/.quarto/
+
+# rendered website (built and deployed by .github/workflows/publish.yml)
+/_site/
+/docs/
+
+# rendered reports outside the website folder
+/scripts/*.html
+/scripts/*_files/
+/scripts/rsconnect/
+
+# material not used in the analyses (kept locally only)
+archive/
+
+# manuscript drafts (kept locally only)
+manuscript/
+
+# fitted brms models (large; not needed to build the website, which uses the
+# cached results in _freeze/)
+data/processed/fits/
+
+# Dropbox sync conflicts
+*conflicted copy*
+*Conflicto de *
+*Case Conflict*
+
+**/*.quarto_ipynb

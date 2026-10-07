@@ -1,0 +1,42 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+    - scripts/0_data_preparation.qmd
+    - scripts/1_population_structure.qmd
+    - scripts/2_sympatry_and_heterospecific_distances.qmd
+    - scripts/3_population_shifts.qmd
+
+execute:
+  freeze: auto
+
+website:
+  title: "Vocal character displacement in southern capuchinos"
+  site-url: https://marce10.github.io/vocal-character-displacement-capuchinos/
+  repo-url: https://github.com/maRce10/vocal-character-displacement-capuchinos
+  page-navigation: true
+  navbar:
+    background: "#ffffff"
+    foreground: "#408AB4"
+    left:
+      - href: index.qmd
+        text: Home
+      - href: scripts/0_data_preparation.qmd
+        text: Data preparation
+      - href: scripts/1_population_structure.qmd
+        text: 1. Population structure
+      - href: scripts/2_sympatry_and_heterospecific_distances.qmd
+        text: 2. Sympatry
+      - href: scripts/3_population_shifts.qmd
+        text: 3. Population shifts
+    right:
+      - icon: github
+        href: https://github.com/maRce10/vocal-character-displacement-capuchinos
+        aria-label: GitHub repository
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    include-after-body: _figure-download.html

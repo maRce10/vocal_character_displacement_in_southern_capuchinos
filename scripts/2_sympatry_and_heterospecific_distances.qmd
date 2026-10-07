@@ -1,0 +1,1613 @@
+---
+title: "Step 2: Sympatry and heterospecific distances"
+subtitle: Vocal character displacement in southern capuchinos
+author: <a href="https://marce10.github.io/">Marcelo Araya-Salas</a>
+date: "`r Sys.Date()`"
+toc: true
+toc-depth: 4
+toc-location: left
+number-sections: true
+highlight-style: pygments
+format:
+  html:
+    df-print: kable
+    code-fold: true
+    code-tools: true
+    css: qmd.css
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r set root directory}
+#| eval: true
+#| echo: false
+#| warning: false
+
+# install knitr package if not installed
+if (!requireNamespace("knitr", quietly = TRUE)) {
+  install.packages("knitr")
+}
+
+# set working directory
+knitr::opts_knit$set(root.dir = "..")
+```
+
+```{r add link to github repo}
+#| eval: true
+#| output: asis
+#| echo: false
+
+# print link to github repo if any
+if (file.exists("./.git/config")) {
+  config <- readLines("./.git/config")
+  url <- grep("url", config, value = TRUE)
+  url <- gsub("\\turl = |.git$", "", url)
+  if (length(url) > 0)
+    if (nchar(url) > 1)
+      cat("\nSource code and data found at [", url, "](", url, ")", sep = "")
+}
+```
+
+```{r setup style}
+#| message: false
+#| warning: false
+
+# options to customize chunk outputs
+knitr::opts_chunk$set(
+  message = FALSE
+)
+```
+
+<!-- skyblue box -->
+
+::: {.alert .alert-info}
+# Purpose {.unnumbered .unlisted}
+
+-   Evaluate whether heterospecific songs are more or less different in sympatry than in allopatry (vocal character displacement)
+:::
+
+# Load packages and custom functions {.unnumbered .unlisted}
+
+```{r load packages}
+#| warning: false
+
+# install knitr package if not installed
+if (!requireNamespace("sketchy", quietly = TRUE)) {
+  install.packages("sketchy")
+}
+
+packages <- c(
+  "knitr",
+  "dplyr",
+  "tidyverse",
+  "vegan",
+  "ecodist",
+  "brms",
+  github = "maRce10/brmsish",
+  "kableExtra",
+  "ggplot2",
+  "ggtext",
+  "ggh4x",
+  github = "stan-dev/cmdstanr"
+)
+
+# install/load packages
+sketchy::load_packages(packages = packages)
+
+options(knitr.kable.NA = '', brms.file_refit = "never")
+
+# set theme globally
+theme_set(theme_classic(base_size = 20))
+
+# custom functions (shared by all reports)
+source("./scripts/functions.R")
+
+```
+
+# Load data {.unnumbered .unlisted}
+
+Pairwise data sets created in [Data preparation](0_data_preparation.qmd).
+
+```{r load step inputs}
+
+step_inputs_simple <- readRDS("./data/processed/step_inputs_simple.rds")
+dist_acoustic_long_simple <- step_inputs_simple$dist_acoustic_long
+
+step_inputs_complex <- readRDS("./data/processed/step_inputs_complex.rds")
+dist_acoustic_long_complex <- step_inputs_complex$dist_acoustic_long
+
+```
+
+# Simple songs
+
+## Statistical analysis
+
+To evaluate whether acoustic divergence between heterospecific songs differed between sympatric and allopatric population comparisons, we fitted a Bayesian mixed-effects model while accounting for the non-independence inherent to pairwise distance data.
+
+The model was specified as:
+
+$$
+\begin{split}
+\text{acoustic distance} &\sim \text{sympatry} \\
+&\quad + (1 \mid \text{species pair}) \\
+&\quad + (1 \mid \text{mm(population}_1,\text{population}_2)) \\
+&\quad + (1 \mid \text{mm(individual}_1,\text{individual}_2))
+\end{split}
+$$
+
+where:
+
+-   \(\text{acoustic distance}_{ij}\) is the Euclidean distance between songs \(i\) and \(j\) in multivariate acoustic space.
+
+-   \(\text{sympatry}_{ij}\) is a binary predictor indicating whether the populations from which songs \(i\) and \(j\) were recorded occur in sympatry (1) or allopatry (0).
+
+-   species pair is a random intercept accounting for baseline differences in acoustic divergence among heterospecific species combinations.
+
+-   mm(population\(_1\), population\(_2\)) is a multi-membership random effect accounting for repeated use of the same populations across pairwise comparisons.
+
+-   mm(individual\(_1\), individual\(_2\)) is a multi-membership random effect accounting for repeated use of the same individuals across pairwise comparisons.
+
+Model specifications:
+
+-   The model was fitted in a Bayesian framework using the brms package, with sympatry as the only fixed effect. Geographic distance was not included: sympatric comparisons are all within-locality and allopatric comparisons all between localities, so sympatry and geographic distance cannot be separated with this sampling (posterior correlation between their coefficients of about 0.9 in the models that included both). Because isolation by distance predicts greater similarity at short distances, omitting geographic distance should, if anything, make the sympatry effect conservative when acoustic distance increases with geographic distance.
+-   The response variable was pairwise Euclidean acoustic distance and was modeled using a Gaussian error distribution.
+-   Only heterospecific comparisons were included.
+-   Analyses were restricted to species pairs for which both sympatric and allopatric population comparisons were available. This restriction ensured that sympatry effects were estimated within the same species-pair contrasts rather than being confounded by species pairs occurring exclusively in sympatry or exclusively in allopatry.
+-   Species-pair identity was included as a random intercept to account for inherent differences in acoustic divergence among species combinations.
+-   Population identity was modeled using a multi-membership random effect because each pairwise comparison simultaneously involves two populations, and each population contributes to multiple pairwise distances.
+-   Individual identity was modeled using a multi-membership random effect because each pairwise comparison simultaneously involves two individuals, and each individual contributes to multiple pairwise distances.
+-   Only unique pairwise comparisons were retained and self-comparisons were excluded.
+-   Weakly informative, regularizing priors were specified for all parameters.
+-   The model was fitted using Hamiltonian Monte Carlo as implemented in Stan through the cmdstanr backend.
+
+The coefficient for sympatry in this model represents the difference in acoustic divergence between sympatric (within-locality) and allopatric (between-locality) heterospecific comparisons, after accounting for the hierarchical structure of the data. The same model structure was fitted separately for the overall PCA-based acoustic distance and for each individual acoustic feature, so that trait-specific effects of sympatry could be examined alongside the overall pattern.
+
+### Model fitting
+
+#### PCA-based acoustic distance
+
+Prepare data for modeling by restricting to species pairs with both sympatric and allopatric comparisons and creating appropriate random effect structures.
+
+Species by location:
+
+```{r}
+# restric to species pairs that have both sympatric and allopatric populations
+tab <- table(dist_acoustic_long_simple$species_pair,
+             dist_acoustic_long_simple$sympatry)
+
+colnames(tab) <- c("allopatric", "sympatric")
+
+keep_pairs <- rownames(tab)[
+  tab[, "allopatric"] > 0 &
+  tab[, "sympatric"] > 0
+]
+
+# Extract all species-population combinations
+sp_pop <- unique(
+  rbind(
+    data.frame(
+      species = dist_acoustic_long_simple$species1,
+      population = dist_acoustic_long_simple$population1
+    ),
+    data.frame(
+      species = dist_acoustic_long_simple$species2,
+      population = dist_acoustic_long_simple$population2
+    )
+  )
+)
+
+# Presence/absence table
+tab <- with(
+  sp_pop,
+  table(species, population)
+)
+
+# Convert counts to X / blank
+tab[] <- ifelse(tab > 0, "\u2713", "")
+
+presence_table <- as.data.frame.matrix(tab)
+
+presence_table$species <- rownames(presence_table)
+
+presence_table <- presence_table[
+  , c("species", setdiff(names(presence_table), "species"))
+]
+
+print(presence_table)
+```
+
+Species pairs by sympatry:
+
+```{r}
+# Species x population occurrence matrix
+occ <- as.matrix(tab)
+
+species <- rownames(occ)
+
+# All pairwise species combinations
+pairs <- combn(species, 2, simplify = FALSE)
+
+results <- data.frame(
+  Pair = character(),
+  Sympatric = character(),
+  Allopatric = character(),
+  stringsAsFactors = FALSE
+)
+
+for(p in pairs) {
+
+  sp1 <- p[1]
+  sp2 <- p[2]
+
+  pops1 <- colnames(occ)[occ[sp1, ] != ""]
+  pops2 <- colnames(occ)[occ[sp2, ] != ""]
+
+  sympatric <- intersect(pops1, pops2)
+
+  if(length(sympatric) == 0) {
+    sympatric_txt <- "none"
+  } else {
+    sympatric_txt <- paste(sympatric, collapse = ", ")
+  }
+
+  allopatric <- setdiff(union(pops1, pops2), sympatric)
+
+  if(length(allopatric) == 0) {
+    allopatric_txt <- "none"
+  } else {
+    allopatric_txt <- paste(allopatric, collapse = ", ")
+  }
+
+  results <- rbind(
+    results,
+    data.frame(
+      Pair = paste(sp1, sp2, sep = "–"),
+      Sympatric = sympatric_txt,
+      Allopatric = allopatric_txt,
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+print(results)
+```
+
+Only three species pairs were kept: `r paste(keep_pairs, collapse = ", ")`
+
+##### Species pairs with both sympatric and allopatric populations
+
+```{r}
+sympatric_pairs_simple <- dist_acoustic_long_simple[
+    dist_acoustic_long_simple$species_pair %in%
+keep_pairs,
+  ]
+
+# create species-specific population IDs
+sympatric_pairs_simple$pop1 <- interaction(
+  sympatric_pairs_simple$species1,
+  sympatric_pairs_simple$population1,
+  drop = TRUE
+)
+
+sympatric_pairs_simple$pop2 <- interaction(
+  sympatric_pairs_simple$species2,
+  sympatric_pairs_simple$population2,
+  drop = TRUE
+)
+
+# make species_pair a factor (fixed effect)
+sympatric_pairs_simple$species_pair <- factor(sympatric_pairs_simple$species_pair)
+
+# scale acoustic_distance
+sympatric_pairs_simple$acoustic_distance_sc <- scale(sympatric_pairs_simple$acoustic_distance)
+
+```
+
+```{r brms model 1}
+
+# options(brms.file_refit = "on_change")
+
+# weak priors
+priors <- c(
+  
+  # Intercept
+  prior(normal(0, 5), class = "Intercept"),
+  
+  # Fixed effect of sympatry
+  prior(normal(0, 2), class = "b"),
+  
+  # Random-effect SDs
+  prior(exponential(1), class = "sd"),
+  
+  # Residual SD
+  prior(exponential(1), class = "sigma")
+  
+)
+
+#fit model
+sympatry_model_simple <- brm(
+  acoustic_distance_sc ~ sympatry + 
+    (1 | species_pair) +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = sympatric_pairs_simple,
+  family  = gaussian(),
+  cores   = 4, 
+  chains = 4, 
+  prior = priors,
+  iter = 10000, 
+  backend = "cmdstanr",
+  threads = threading(8),  
+  control = list(adapt_delta = 0.95, max_treedepth = 15),
+  file    = "./data/processed/fits/acoustic_distance_sympatry_only_simple_fit"
+)
+
+```
+
+##### Prior predictive check
+
+Before looking at the posterior we check what the priors alone imply for the response. The model below is refitted with `sample_prior = "only"`, so the likelihood is ignored and the draws come purely from the priors. For a standardized response (mean 0, SD 1) the prior predictive distribution should comfortably cover the observed range (roughly -3 to 3) without being absurdly wide; a prior that could only generate values within the observed range would be doing the data's job, and one spanning hundreds of SDs would not be regularizing anything.
+
+```{r prior predictive check simple}
+#| fig-height: 4
+
+prior_only_simple <- brm(
+  acoustic_distance_sc ~ sympatry +
+    (1 | species_pair) +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = sympatric_pairs_simple,
+  family = gaussian(),
+  prior = priors,
+  sample_prior = "only",
+  chains = 2,
+  iter = 2000,
+  cores = 2,
+  seed = 123,
+  backend = "cmdstanr",
+  file = "./data/processed/fits/prior_only_acoustic_distance_sympatry_only_simple"
+)
+
+pp_check(prior_only_simple, type = "dens_overlay", ndraws = 50) +
+  coord_cartesian(xlim = c(-20, 20)) +
+  labs(
+    title = "Prior predictive check (simple songs, multivariate model)",
+    subtitle = "y: observed standardized acoustic distance; y_rep: draws from the priors only"
+  )
+
+```
+
+##### Fit summary
+
+```{r model summary 1}
+#| results: "asis"
+
+extended_summary(
+    sympatry_model_simple,
+    highlight = TRUE,
+    trace.palette = viridis::mako,
+    remove.intercepts = TRUE,
+    print.name = FALSE
+)
+
+```
+
+##### Posterior predictive check
+
+Posterior predictive checks compare the observed data with data simulated from the fitted model (Gelman et al. 2014). Three views: the distribution of the response versus 50 replicated data sets (density overlay); the mean of the response within sympatric and allopatric pairs versus its posterior predictive distribution (the quantity the sympatry coefficient is about); and observed values against their posterior-averaged predictions. The observed data should fall within the range of the replicates.
+
+```{r posterior predictive check simple}
+#| fig-height: 4
+
+pp_check(sympatry_model_simple, type = "dens_overlay", ndraws = 50) +
+  labs(title = "Posterior predictive check (simple songs): density overlay")
+
+pp_check(sympatry_model_simple, type = "stat_grouped", stat = "mean", group = "sympatry", ndraws = 500) +
+  labs(title = "Posterior predictive check (simple songs): mean by sympatry (0 = allopatric, 1 = sympatric)")
+
+pp_check(sympatry_model_simple, type = "scatter_avg", ndraws = 100) +
+  labs(title = "Posterior predictive check (simple songs): observed vs. posterior-averaged prediction")
+
+```
+
+##### Divergent transitions
+
+The sampler produced divergent transitions in this model. Divergences mark regions of the posterior that Hamiltonian Monte Carlo could not explore reliably, so estimates from those regions may be biased (Betancourt 2017). Without refitting, the checks below show (1) how many post-warmup draws diverged and whether they are concentrated in one chain, (2) whether divergences pile up at small values of any random-effect SD (a "funnel"; the species-pair SD, estimated from only three levels, is the most likely candidate), and (3) whether the fixed-effect estimates differ between divergent and non-divergent draws. If divergences are confined to a random-effect SD and the fixed effects look the same in both sets of draws, the inference on sympatry is unlikely to be affected. These checks cannot show what the sampler failed to explore, so refitting (e.g. with species pair as a fixed effect) remains the definitive test.
+
+```{r divergences simple}
+#| fig-height: 4
+#| fig-width: 6
+
+div_simple <- divergence_check(sympatry_model_simple)
+
+print(div_simple$summary)
+
+print(div_simple$sd)
+
+print(div_simple$fixef)
+
+```
+
+::: {.alert .alert-info}
+##### Summary {.unnumbered .unlisted}
+
+*To be written after the sympatry-only models are fitted.*
+
+:::
+
+##### Contrasts by species pair
+
+The model above estimates a single sympatry effect for all species pairs; species pair enters only as a varying intercept, which shifts sympatric and allopatric comparisons by the same amount and therefore cannot tell whether the effect is shared by all pairs or driven by one of them. To obtain a separate sympatry effect for each species pair, the model is refitted with species-pair-specific sympatry slopes (a varying slope of sympatry by species pair, correlated with the varying intercept, with an LKJ(2) prior on the correlation). The per-pair effect is the fixed sympatry effect plus the pair's deviation; the pairwise differences between species pairs are computed from the posterior draws. With only three species pairs the between-pair standard deviation of the sympatry slope, and its correlation with the intercept, are weakly informed by the data and lean on the priors; the per-pair effects are partially pooled towards the overall effect, so they should be read as shrunken estimates rather than as three independent fits. The fitting chunk is not evaluated when rendering (it takes as long as the main model); run it once and the results are loaded from the saved fit.
+
+```{r species pair slopes fit simple}
+#| eval: false
+
+priors_sp <- c(
+  priors,
+  prior(lkj(2), class = "cor")
+)
+
+sympatry_by_species_pair_simple <- brm(
+  acoustic_distance_sc ~ sympatry +
+    (1 + sympatry | species_pair) +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = sympatric_pairs_simple,
+  family = gaussian(),
+  prior = priors_sp,
+  cores = 4,
+  chains = 4,
+  iter = 10000,
+  backend = "cmdstanr",
+  threads = threading(8),
+  control = list(adapt_delta = 0.95, max_treedepth = 15),
+  file = "./data/processed/fits/acoustic_distance_sympatry_only_by_species_pair_simple_fit"
+)
+
+```
+
+```{r species pair contrasts simple}
+#| fig-height: 3
+
+sp_fit_file <- "./data/processed/fits/acoustic_distance_sympatry_only_by_species_pair_simple_fit.rds"
+
+if (file.exists(sp_fit_file)) {
+
+  sympatry_by_species_pair_simple <- readRDS(sp_fit_file)
+
+  sp_contrasts_simple <- species_pair_sympatry_effects(sympatry_by_species_pair_simple)
+
+  base::print(sp_contrasts_simple$plot)
+
+} else {
+  message("Species-pair slope model not fitted yet - run the chunk above first.")
+}
+
+```
+
+```{r species pair contrast tables simple}
+
+if (exists("sp_contrasts_simple")) print(sp_contrasts_simple$effects)
+
+```
+
+```{r species pair difference tables simple}
+
+if (exists("sp_contrasts_simple")) print(sp_contrasts_simple$differences)
+
+```
+
+```{r species pair slopes summary simple}
+#| results: "asis"
+
+if (exists("sympatry_by_species_pair_simple")) {
+  extended_summary(
+    sympatry_by_species_pair_simple,
+    highlight = TRUE,
+    trace.palette = viridis::mako,
+    remove.intercepts = TRUE,
+    print.name = FALSE
+  )
+}
+
+```
+
+Population-pair contrasts from the species-pair slope model (same procedure as in the next section, but each species pair now has its own sympatry effect):
+
+```{r species pair slopes population contrasts simple}
+#| fig-height: 7
+
+if (exists("sympatry_by_species_pair_simple")) {
+  pop_contrasts_sp_simple <- population_pair_contrasts(
+    fit = sympatry_by_species_pair_simple,
+    dat = sympatric_pairs_simple
+  )
+  base::print(pop_contrasts_sp_simple$plot)
+}
+
+```
+
+```{r species pair slopes population contrast table simple}
+
+if (exists("pop_contrasts_sp_simple")) print(pop_contrasts_sp_simple$contrasts)
+
+```
+
+##### Contrasts among population pairs
+
+Using the fitted model as is, the expected acoustic distance is computed for every observed combination of populations within each species pair, including the species-pair and population (multi-membership) effects and setting the individual effects to zero (i.e. for an average individual). Sympatric population pairs (the two species recorded at the same locality) are then contrasted against each allopatric population pair of the same species pair; each contrast is computed draw by draw, so its uncertainty interval reflects the joint posterior. Contrasts that share a population pair (e.g. the same sympatric pair against several allopatric ones) are not independent of each other and should be read as a set rather than as separate tests.
+
+```{r population pair contrasts simple}
+#| fig-height: 7
+
+pop_contrasts_simple <- population_pair_contrasts(
+  fit = sympatry_model_simple,
+  dat = sympatric_pairs_simple
+)
+
+base::print(pop_contrasts_simple$plot)
+
+```
+
+```{r population pair expected table simple}
+
+print(pop_contrasts_simple$expected)
+
+```
+
+```{r population pair contrast table simple}
+
+print(pop_contrasts_simple$contrasts)
+
+```
+
+#### Feature-based acoustic distance
+
+The following plot summarizes the relationship between sympatry and acoustic divergence for each of the acoustic features used to calculate acoustic distance. The model was fit separately for each feature, and the estimated effect of sympatry on acoustic divergence is shown with 95% credible intervals. Rows correspond to individual acoustic traits and columns to the predictors included in the Bayesian mixed-effects models. Tile color represents the posterior mean regression coefficient (green = positive effect, purple = negative effect, white = no effect), while the numerical value within each tile indicates the estimated effect size. Models accounted for non-independence among pairwise comparisons by including multi-membership random effects for populations and individuals, as well as a random intercept for species pair.
+
+```{r brms model by feature}
+
+# identify all response variables
+distance_vars <- grep(
+  "_distance$",
+  names(sympatric_pairs_simple),
+  value = TRUE
+)
+
+# remove the overall PCA-based distance (modelled separately above)
+distance_vars <- setdiff(distance_vars, "acoustic_distance")
+
+```
+
+```{r prior predictive check trait-level simple}
+#| fig-height: 4
+
+# prior predictive check for the trait-level prior set (defined again here
+# because the fitting chunk below is not evaluated when rendering), using
+# one representative standardized response; the same priors and formula are
+# used for every trait, so one check covers the set
+priors_trait <- c(
+  prior(normal(0, 1),   class = "Intercept"),
+  prior(normal(0, 0.5), class = "b"),
+  prior(exponential(2), class = "sd"),
+  prior(exponential(1), class = "sigma")
+)
+
+sympatric_pairs_simple$freqrange_distance_sc <- as.numeric(scale(sympatric_pairs_simple$freqrange_distance))
+
+prior_only_trait_simple <- brm(
+  freqrange_distance_sc ~ sympatry +
+    (1 | species_pair) +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = sympatric_pairs_simple,
+  family = gaussian(),
+  prior = priors_trait,
+  sample_prior = "only",
+  chains = 2,
+  iter = 2000,
+  cores = 2,
+  seed = 123,
+  backend = "cmdstanr",
+  file = "./data/processed/fits/prior_only_trait_level_sympatry_only_simple"
+)
+
+pp_check(prior_only_trait_simple, type = "dens_overlay", ndraws = 50) +
+  coord_cartesian(xlim = c(-10, 10)) +
+  labs(
+    title = "Prior predictive check (simple songs, trait-level priors)",
+    subtitle = "y: observed standardized frequency-range distance; y_rep: draws from the priors only"
+  )
+
+```
+
+```{r brms model fitting}
+#| eval: false
+
+# scale every per-feature response the same way (mirrors the complex-song
+# loop), so all traits and both song types are on a comparable footing
+distance_vars_sc <- paste0(distance_vars, "_sc")
+
+for (v in distance_vars) {
+  sympatric_pairs_simple[[paste0(v, "_sc")]] <- as.numeric(scale(sympatric_pairs_simple[[v]]))
+}
+
+# tighter, genuinely regularizing priors now that the response is
+# standardized (mean 0, SD 1) - a coefficient near |1| would already be
+# an implausibly large effect
+priors <- c(
+  prior(normal(0, 1),   class = "Intercept"),
+  prior(normal(0, 0.5), class = "b"),
+  prior(exponential(2), class = "sd"),
+  prior(exponential(1), class = "sigma")
+)
+
+for (resp in rev(distance_vars_sc)) {
+
+  cat("\n=============================\n")
+  cat("Fitting:", resp, "\n")
+  cat("=============================\n")
+
+  # ----------------------------
+  # Sympatry only
+  # ----------------------------
+
+  form_sympatry <- bf(
+    as.formula(
+      paste0(
+        resp,
+        " ~ sympatry + ",
+        "(1 | species_pair) + ",
+        "(1 | mm(pop1, pop2)) + ",
+        "(1 | mm(individual1, individual2))"
+      )
+    )
+  )
+
+  mod <- brm(
+    formula = form_sympatry,
+    data = sympatric_pairs_simple,
+    family = gaussian(),
+    prior = priors,
+    cores = 4,
+    chains = 4,
+    iter = 10000,
+    backend = "cmdstanr",
+    threads = threading(8),
+    control = list(
+      adapt_delta = 0.95,
+      max_treedepth = 15
+    ), 
+    file = paste0(
+      "./data/processed/fits/",
+      resp,
+      "_sympatry_only_simple_fit"
+    )
+  )
+
+}
+
+```
+
+```{r}
+#| results: "asis"
+
+# Find and load all saved brms models
+
+model_files <- list.files(
+  "./data/processed/fits",
+  pattern = "\\.rds$",
+  full.names = TRUE
+)
+
+model_files <- grep("_complex", model_files, value = TRUE, invert = TRUE)
+
+model_files <- grep(paste(distance_vars, collapse = "|"), model_files, value = TRUE)
+# not "_distance_sympatry_..." - a response scaled for its own fit (e.g.
+# mst_distance_sc) has a suffix between "distance" and "sympatry", which
+# would break that stricter match
+model_files <- grep("_sympatry_only", model_files, value = TRUE)
+
+plot_brms_heatmap(model_files = model_files)
+
+```
+
+The table below gives, for every trait-level model above, the posterior mean, standard error and 95% uncertainty interval of each predictor; the last column flags intervals that exclude zero. Like the heatmap, it only includes models whose fit file exists.
+
+```{r feature effects table simple}
+
+fixef_tab_simple <- fixef_table(model_files)
+
+if (!is.null(fixef_tab_simple)) print(fixef_tab_simple)
+
+```
+
+The expandable section below provides the complete Bayesian model summaries underlying those estimates, including posterior parameter estimates, uncertainty intervals, and convergence diagnostics.
+
+::: {.callout-note collapse="true"}
+##### Model results
+
+<!-- #::: {.panel-tabset} -->
+
+```{r}
+#| results: asis
+#| eval: false
+
+for (i in model_files) {
+
+  model_name <- tools::file_path_sans_ext(basename(i))
+
+  model_name <- gsub("_sympatry_only.*", "", model_name)
+  
+  cat("## ", model_name, "\n\n")
+
+  extended_summary(
+    read.file = i,
+    highlight = TRUE,
+    trace.palette = viridis::mako,
+    remove.intercepts = TRUE,
+    print.name = FALSE
+  )
+
+  cat("\n\n")
+}
+```
+
+<!-- #::: -->
+:::
+
+The expandable section below shows a posterior predictive check (density overlay, 50 replicated data sets) for every trait-level model that has finished fitting; models whose fit file is missing are skipped.
+
+::: {.callout-note collapse="true"}
+##### Posterior predictive checks
+
+```{r posterior predictive checks by feature simple}
+#| results: "asis"
+#| fig-height: 3.5
+
+for (i in model_files) {
+
+  fit <- tryCatch(readRDS(i), error = function(e) NULL)
+  if (is.null(fit)) next
+
+  model_name <- gsub("_sympatry_only.*", "", tools::file_path_sans_ext(basename(i)))
+
+  cat("\n\n**", model_name, "**\n\n", sep = "")
+
+  # base::print - the document redefines print() as a kable wrapper
+  base::print(
+    pp_check(fit, type = "dens_overlay", ndraws = 50) +
+      labs(title = model_name)
+  )
+
+  cat("\n\n")
+
+  rm(fit)
+  invisible(gc(verbose = FALSE))
+}
+
+```
+:::
+
+##### Divergent transitions, per feature
+
+The same divergence diagnostics for every trait-level model that has finished fitting: number and percentage of divergent post-warmup draws, divergences per chain, draws that hit the maximum treedepth, the median sympatry coefficient in non-divergent vs divergent draws, and the mean percentile of the divergent draws within the posterior of the species-pair SD (values near 0 indicate divergences piled up at small SD values).
+
+```{r divergences by feature simple}
+
+div_tab_simple <- divergence_table(model_files)
+
+if (!is.null(div_tab_simple)) print(div_tab_simple)
+
+```
+
+##### Contrasts among population pairs, per feature
+
+The same population-pair contrasts computed for the overall PCA-based model above, now repeated for every individual acoustic feature that has finished fitting: expected acoustic distance for each observed population pair (species-pair and population multi-membership effects included, individual effects set to zero), then sympatric vs allopatric population-pair differences within each species pair. Each feature gets its own plot (faceted by species pair, as in the main-model version above) rather than being crowded into one combined figure. As with the main-model version, contrasts sharing a population pair are not independent of each other.
+
+```{r population pair contrasts by feature simple}
+#| results: "asis"
+#| fig-height: 5
+
+pop_contrasts_by_feature_simple <- population_pair_contrasts_by_feature(
+  model_files = model_files,
+  dat = sympatric_pairs_simple
+)
+
+if (!is.null(pop_contrasts_by_feature_simple)) {
+  for (feat in names(pop_contrasts_by_feature_simple$plots)) {
+    cat("\n\n**", feat, "**\n\n", sep = "")
+    base::print(pop_contrasts_by_feature_simple$plots[[feat]])
+    cat("\n\n")
+  }
+}
+
+```
+
+```{r population pair contrast table by feature simple}
+
+if (!is.null(pop_contrasts_by_feature_simple)) print(pop_contrasts_by_feature_simple$contrasts)
+
+```
+
+::: {.alert .alert-info}
+##### Summary {.unnumbered .unlisted}
+
+*To be written after the sympatry-only models are fitted.*
+
+:::
+
+## Combined results heatmap
+
+The heatmap below combines every simple-song model fitted so far - the song-level PCA-distance model and every per-feature model, including `elm_pca_distance` - into a single view. Since models may still be running in the background, this only plots whichever fits have already been saved; it updates automatically as more finish, and produces no error if some (or all) are still missing.
+
+```{r combined heatmap simple}
+#| results: "asis"
+
+# combine every simple-song fit (main song-level model + all per-feature
+# models) into a single heatmap; safe to run at any point while models
+# are still fitting, since plot_brms_heatmap() skips missing/unreadable
+# files rather than erroring
+
+model_files_simple <- list.files(
+  "./data/processed/fits",
+  pattern = "\\.rds$",
+  full.names = TRUE
+)
+
+model_files_simple <- grep("simple", model_files_simple, value = TRUE)
+# sympatry-only fits only (excludes earlier model versions, prior-only
+# fits and species-pair slope fits saved in the same folder)
+model_files_simple <- grep("sympatry_only_simple_fit", model_files_simple, value = TRUE)
+model_files_simple <- grep("by_species_pair|prior_only", model_files_simple, value = TRUE, invert = TRUE)
+
+plot_brms_heatmap(model_files = model_files_simple)
+
+```
+
+# Complex songs
+
+## Statistical analysis
+
+To evaluate whether acoustic divergence between heterospecific songs differed between sympatric and allopatric population comparisons, we fitted a Bayesian mixed-effects model while accounting for the non-independence inherent to pairwise distance data.
+
+The model was specified as:
+
+$$
+\begin{split}
+\text{acoustic distance} &\sim \text{sympatry} \\
+&\quad + (1 \mid \text{species pair}) \\
+&\quad + (1 \mid \text{mm(population}_1,\text{population}_2)) \\
+&\quad + (1 \mid \text{mm(individual}_1,\text{individual}_2))
+\end{split}
+$$
+
+where:
+
+-   \(\text{acoustic distance}_{ij}\) is the Euclidean distance between songs \(i\) and \(j\) in multivariate acoustic space.
+
+-   \(\text{sympatry}_{ij}\) is a binary predictor indicating whether the populations from which songs \(i\) and \(j\) were recorded occur in sympatry (1) or allopatry (0).
+
+-   species pair is a random intercept accounting for baseline differences in acoustic divergence among heterospecific species combinations.
+
+-   mm(population\(_1\), population\(_2\)) is a multi-membership random effect accounting for repeated use of the same populations across pairwise comparisons.
+
+-   mm(individual\(_1\), individual\(_2\)) is a multi-membership random effect accounting for repeated use of the same individuals across pairwise comparisons.
+
+Model specifications:
+
+-   The model was fitted in a Bayesian framework using the brms package, with sympatry as the only fixed effect. Geographic distance was not included: sympatric comparisons are all within-locality and allopatric comparisons all between localities, so sympatry and geographic distance cannot be separated with this sampling (posterior correlation between their coefficients of about 0.9 in the models that included both). Because isolation by distance predicts greater similarity at short distances, omitting geographic distance should, if anything, make the sympatry effect conservative when acoustic distance increases with geographic distance.
+-   The response variable was pairwise Euclidean acoustic distance and was modeled using a Gaussian error distribution.
+-   Only heterospecific comparisons were included.
+-   Analyses were restricted to species pairs for which both sympatric and allopatric population comparisons were available. This restriction ensured that sympatry effects were estimated within the same species-pair contrasts rather than being confounded by species pairs occurring exclusively in sympatry or exclusively in allopatry.
+-   Species-pair identity was included as a random intercept to account for inherent differences in acoustic divergence among species combinations.
+-   Population identity was modeled using a multi-membership random effect because each pairwise comparison simultaneously involves two populations, and each population contributes to multiple pairwise distances.
+-   Individual identity was modeled using a multi-membership random effect because each pairwise comparison simultaneously involves two individuals, and each individual contributes to multiple pairwise distances.
+-   Only unique pairwise comparisons were retained and self-comparisons were excluded.
+-   Weakly informative, regularizing priors were specified for all parameters.
+-   The model was fitted using Hamiltonian Monte Carlo as implemented in Stan through the cmdstanr backend.
+
+The coefficient for sympatry in this model represents the difference in acoustic divergence between sympatric (within-locality) and allopatric (between-locality) heterospecific comparisons, after accounting for the hierarchical structure of the data. The same model structure was fitted separately for the overall PCA-based acoustic distance and for each individual acoustic feature, so that trait-specific effects of sympatry could be examined alongside the overall pattern.
+
+### Model fitting
+
+#### PCA-based acoustic distance
+
+Prepare data for modeling by restricting to species pairs with both sympatric and allopatric comparisons and creating appropriate random effect structures.
+
+```{r complex}
+# restric to species pairs that have both sympatric and allopatric populations
+tab <- table(dist_acoustic_long_complex$species_pair,
+             dist_acoustic_long_complex$sympatry)
+
+colnames(tab) <- c("allopatric", "sympatric")
+
+keep_pairs <- rownames(tab)[
+  tab[, "allopatric"] > 0 &
+  tab[, "sympatric"] > 0
+]
+
+# Extract all species-population combinations
+sp_pop <- unique(
+  rbind(
+    data.frame(
+      species = dist_acoustic_long_complex$species1,
+      population = dist_acoustic_long_complex$population1
+    ),
+    data.frame(
+      species = dist_acoustic_long_complex$species2,
+      population = dist_acoustic_long_complex$population2
+    )
+  )
+)
+
+# Presence/absence table
+tab <- with(
+  sp_pop,
+  table(species, population)
+)
+
+# Convert counts to X / blank
+tab[] <- ifelse(tab > 0, "\u2713", "")
+
+presence_table <- as.data.frame.matrix(tab)
+
+presence_table$species <- rownames(presence_table)
+
+presence_table <- presence_table[
+  , c("species", setdiff(names(presence_table), "species"))
+]
+
+# print(presence_table)
+```
+
+```{r}
+# Species x population occurrence matrix
+occ <- as.matrix(tab)
+
+species <- rownames(occ)
+
+# All pairwise species combinations
+pairs <- combn(species, 2, simplify = FALSE)
+
+results <- data.frame(
+  Pair = character(),
+  Sympatric = character(),
+  Allopatric = character(),
+  stringsAsFactors = FALSE
+)
+
+for(p in pairs) {
+
+  sp1 <- p[1]
+  sp2 <- p[2]
+
+  pops1 <- colnames(occ)[occ[sp1, ] != ""]
+  pops2 <- colnames(occ)[occ[sp2, ] != ""]
+
+  sympatric <- intersect(pops1, pops2)
+
+  if(length(sympatric) == 0) {
+    sympatric_txt <- "none"
+  } else {
+    sympatric_txt <- paste(sympatric, collapse = ", ")
+  }
+
+  allopatric <- setdiff(union(pops1, pops2), sympatric)
+
+  if(length(allopatric) == 0) {
+    allopatric_txt <- "none"
+  } else {
+    allopatric_txt <- paste(allopatric, collapse = ", ")
+  }
+
+  results <- rbind(
+    results,
+    data.frame(
+      Pair = paste(sp1, sp2, sep = "–"),
+      Sympatric = sympatric_txt,
+      Allopatric = allopatric_txt,
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+# print(results)
+```
+
+Only three species pairs were kept: `r paste(keep_pairs, collapse = ", ")`
+
+##### Species pairs with both sympatric and allopatric populations
+
+```{r}
+sympatric_pairs_complex <- dist_acoustic_long_complex[
+    dist_acoustic_long_complex$species_pair %in%
+keep_pairs,
+  ]
+
+# create species-specific population IDs
+sympatric_pairs_complex$pop1 <- interaction(
+  sympatric_pairs_complex$species1,
+  sympatric_pairs_complex$population1,
+  drop = TRUE
+)
+
+sympatric_pairs_complex$pop2 <- interaction(
+  sympatric_pairs_complex$species2,
+  sympatric_pairs_complex$population2,
+  drop = TRUE
+)
+
+# make species_pair a factor (fixed effect)
+sympatric_pairs_complex$species_pair <- factor(sympatric_pairs_complex$species_pair)
+
+# scale acoustic_distance
+sympatric_pairs_complex$acoustic_distance_sc <- scale(sympatric_pairs_complex$acoustic_distance)
+
+```
+
+```{r brms model 1 complex}
+
+# weak priors
+priors <- c(
+  
+  # Intercept
+  prior(normal(0, 5), class = "Intercept"),
+  
+  # Fixed effect of sympatry
+  prior(normal(0, 2), class = "b"),
+  
+  # Random-effect SDs
+  prior(exponential(1), class = "sd"),
+  
+  # Residual SD
+  prior(exponential(1), class = "sigma")
+  
+)
+
+#fit model
+sympatry_model_complex <- brm(
+  acoustic_distance_sc ~ sympatry +
+    (1 | species_pair) +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = sympatric_pairs_complex,
+  family  = gaussian(),
+  cores   = 4, 
+  chains = 4, 
+  prior = priors,
+  iter = 10000, 
+  backend = "cmdstanr",
+  threads = threading(8),  
+  control = list(adapt_delta = 0.95, max_treedepth = 15),
+  file    = "./data/processed/fits/acoustic_distance_sympatry_only_complex_fit"
+)
+
+# beepr::beep(3)
+
+```
+
+##### Prior predictive check
+
+Before looking at the posterior we check what the priors alone imply for the response. The model below is refitted with `sample_prior = "only"`, so the likelihood is ignored and the draws come purely from the priors. For a standardized response (mean 0, SD 1) the prior predictive distribution should comfortably cover the observed range (roughly -3 to 3) without being absurdly wide; a prior that could only generate values within the observed range would be doing the data's job, and one spanning hundreds of SDs would not be regularizing anything.
+
+```{r prior predictive check complex}
+#| fig-height: 4
+
+prior_only_complex <- brm(
+  acoustic_distance_sc ~ sympatry +
+    (1 | species_pair) +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = sympatric_pairs_complex,
+  family = gaussian(),
+  prior = priors,
+  sample_prior = "only",
+  chains = 2,
+  iter = 2000,
+  cores = 2,
+  seed = 123,
+  backend = "cmdstanr",
+  file = "./data/processed/fits/prior_only_acoustic_distance_sympatry_only_complex"
+)
+
+pp_check(prior_only_complex, type = "dens_overlay", ndraws = 50) +
+  coord_cartesian(xlim = c(-20, 20)) +
+  labs(
+    title = "Prior predictive check (complex songs, multivariate model)",
+    subtitle = "y: observed standardized acoustic distance; y_rep: draws from the priors only"
+  )
+
+```
+
+##### Fit summary
+
+```{r model summary 1 complex}
+#| results: "asis"
+
+extended_summary(
+  sympatry_model_complex,
+  highlight = TRUE,
+  trace.palette = viridis::mako,
+  remove.intercepts = TRUE,
+  print.name = FALSE
+)
+
+```
+
+##### Posterior predictive check
+
+Posterior predictive checks compare the observed data with data simulated from the fitted model (Gelman et al. 2014). Three views: the distribution of the response versus 50 replicated data sets (density overlay); the mean of the response within sympatric and allopatric pairs versus its posterior predictive distribution (the quantity the sympatry coefficient is about); and observed values against their posterior-averaged predictions. The observed data should fall within the range of the replicates.
+
+```{r posterior predictive check complex}
+#| fig-height: 4
+
+pp_check(sympatry_model_complex, type = "dens_overlay", ndraws = 50) +
+  labs(title = "Posterior predictive check (complex songs): density overlay")
+
+pp_check(sympatry_model_complex, type = "stat_grouped", stat = "mean", group = "sympatry", ndraws = 500) +
+  labs(title = "Posterior predictive check (complex songs): mean by sympatry (0 = allopatric, 1 = sympatric)")
+
+pp_check(sympatry_model_complex, type = "scatter_avg", ndraws = 100) +
+  labs(title = "Posterior predictive check (complex songs): observed vs. posterior-averaged prediction")
+
+```
+
+##### Divergent transitions
+
+The sampler produced divergent transitions in this model. Divergences mark regions of the posterior that Hamiltonian Monte Carlo could not explore reliably, so estimates from those regions may be biased (Betancourt 2017). Without refitting, the checks below show (1) how many post-warmup draws diverged and whether they are concentrated in one chain, (2) whether divergences pile up at small values of any random-effect SD (a "funnel"; the species-pair SD, estimated from only three levels, is the most likely candidate), and (3) whether the fixed-effect estimates differ between divergent and non-divergent draws. If divergences are confined to a random-effect SD and the fixed effects look the same in both sets of draws, the inference on sympatry is unlikely to be affected. These checks cannot show what the sampler failed to explore, so refitting (e.g. with species pair as a fixed effect) remains the definitive test.
+
+```{r divergences complex}
+#| fig-height: 4
+#| fig-width: 6
+
+div_complex <- divergence_check(sympatry_model_complex)
+
+print(div_complex$summary)
+
+print(div_complex$sd)
+
+print(div_complex$fixef)
+
+```
+
+::: {.alert .alert-info}
+##### Summary {.unnumbered .unlisted}
+
+*To be written after the sympatry-only models are fitted.*
+
+:::
+
+##### Contrasts by species pair
+
+The model above estimates a single sympatry effect for all species pairs; species pair enters only as a varying intercept, which shifts sympatric and allopatric comparisons by the same amount and therefore cannot tell whether the effect is shared by all pairs or driven by one of them. To obtain a separate sympatry effect for each species pair, the model is refitted with species-pair-specific sympatry slopes (a varying slope of sympatry by species pair, correlated with the varying intercept, with an LKJ(2) prior on the correlation). The per-pair effect is the fixed sympatry effect plus the pair's deviation; the pairwise differences between species pairs are computed from the posterior draws. With only three species pairs the between-pair standard deviation of the sympatry slope, and its correlation with the intercept, are weakly informed by the data and lean on the priors; the per-pair effects are partially pooled towards the overall effect, so they should be read as shrunken estimates rather than as three independent fits. The fitting chunk is not evaluated when rendering (it takes as long as the main model); run it once and the results are loaded from the saved fit.
+
+```{r species pair slopes fit complex}
+#| eval: false
+
+priors_sp <- c(
+  priors,
+  prior(lkj(2), class = "cor")
+)
+
+sympatry_by_species_pair_complex <- brm(
+  acoustic_distance_sc ~ sympatry +
+    (1 + sympatry | species_pair) +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = sympatric_pairs_complex,
+  family = gaussian(),
+  prior = priors_sp,
+  cores = 4,
+  chains = 4,
+  iter = 10000,
+  backend = "cmdstanr",
+  threads = threading(8),
+  control = list(adapt_delta = 0.95, max_treedepth = 15),
+  file = "./data/processed/fits/acoustic_distance_sympatry_only_by_species_pair_complex_fit"
+)
+
+```
+
+```{r species pair contrasts complex}
+#| fig-height: 3
+
+sp_fit_file <- "./data/processed/fits/acoustic_distance_sympatry_only_by_species_pair_complex_fit.rds"
+
+if (file.exists(sp_fit_file)) {
+
+  sympatry_by_species_pair_complex <- readRDS(sp_fit_file)
+
+  sp_contrasts_complex <- species_pair_sympatry_effects(sympatry_by_species_pair_complex)
+
+  base::print(sp_contrasts_complex$plot)
+
+} else {
+  message("Species-pair slope model not fitted yet - run the chunk above first.")
+}
+
+```
+
+```{r species pair contrast tables complex}
+
+if (exists("sp_contrasts_complex")) print(sp_contrasts_complex$effects)
+
+```
+
+```{r species pair difference tables complex}
+
+if (exists("sp_contrasts_complex")) print(sp_contrasts_complex$differences)
+
+```
+
+```{r species pair slopes summary complex}
+#| results: "asis"
+
+if (exists("sympatry_by_species_pair_complex")) {
+  extended_summary(
+    sympatry_by_species_pair_complex,
+    highlight = TRUE,
+    trace.palette = viridis::mako,
+    remove.intercepts = TRUE,
+    print.name = FALSE
+  )
+}
+
+```
+
+Population-pair contrasts from the species-pair slope model (same procedure as in the next section, but each species pair now has its own sympatry effect):
+
+```{r species pair slopes population contrasts complex}
+#| fig-height: 7
+
+if (exists("sympatry_by_species_pair_complex")) {
+  pop_contrasts_sp_complex <- population_pair_contrasts(
+    fit = sympatry_by_species_pair_complex,
+    dat = sympatric_pairs_complex
+  )
+  base::print(pop_contrasts_sp_complex$plot)
+}
+
+```
+
+```{r species pair slopes population contrast table complex}
+
+if (exists("pop_contrasts_sp_complex")) print(pop_contrasts_sp_complex$contrasts)
+
+```
+
+##### Contrasts among population pairs
+
+Using the fitted model as is, the expected acoustic distance is computed for every observed combination of populations within each species pair, including the species-pair and population (multi-membership) effects and setting the individual effects to zero (i.e. for an average individual). Sympatric population pairs (the two species recorded at the same locality) are then contrasted against each allopatric population pair of the same species pair; each contrast is computed draw by draw, so its uncertainty interval reflects the joint posterior. Contrasts that share a population pair (e.g. the same sympatric pair against several allopatric ones) are not independent of each other and should be read as a set rather than as separate tests.
+
+```{r population pair contrasts complex}
+#| fig-height: 7
+
+pop_contrasts_complex <- population_pair_contrasts(
+  fit = sympatry_model_complex,
+  dat = sympatric_pairs_complex
+)
+
+base::print(pop_contrasts_complex$plot)
+
+```
+
+```{r population pair expected table complex}
+
+print(pop_contrasts_complex$expected)
+
+```
+
+```{r population pair contrast table complex}
+
+print(pop_contrasts_complex$contrasts)
+
+```
+
+#### Feature-based acoustic distance
+
+The following plot summarizes the relationship between sympatry and acoustic divergence for each of the acoustic features used to calculate acoustic distance. The model was fit separately for each feature, and the estimated effect of sympatry on acoustic divergence is shown with 95% credible intervals. Rows correspond to individual acoustic traits and columns to the predictors included in the Bayesian mixed-effects models. Tile color represents the posterior mean regression coefficient (green = positive effect, purple = negative effect, white = no effect), while the numerical value within each tile indicates the estimated effect size. Models accounted for non-independence among pairwise comparisons by including multi-membership random effects for populations and individuals, as well as a random intercept for species pair.
+
+```{r brms model by feature complex}
+
+# identify all response variables
+distance_vars <- grep(
+  "_distance$",
+  names(sympatric_pairs_complex),
+  value = TRUE
+)
+
+# remove the overall PCA-based distance (modelled separately above)
+distance_vars <- setdiff(distance_vars, "acoustic_distance")
+
+# scale mst
+# distance_vars[distance_vars == "mst_distance"] <- "mst_distance_sc"
+
+# sympatric_pairs_complex$mst_distance_sc <- scale(sympatric_pairs_complex$mst_distance)
+
+```
+
+```{r prior predictive check trait-level complex}
+#| fig-height: 4
+
+# prior predictive check for the trait-level prior set (defined again here
+# because the fitting chunk below is not evaluated when rendering), using
+# one representative standardized response; the same priors and formula are
+# used for every trait, so one check covers the set
+priors_trait <- c(
+  prior(normal(0, 1),   class = "Intercept"),
+  prior(normal(0, 0.5), class = "b"),
+  prior(exponential(2), class = "sd"),
+  prior(exponential(1), class = "sigma")
+)
+
+sympatric_pairs_complex$freqrange_distance_sc <- as.numeric(scale(sympatric_pairs_complex$freqrange_distance))
+
+prior_only_trait_complex <- brm(
+  freqrange_distance_sc ~ sympatry +
+    (1 | species_pair) +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = sympatric_pairs_complex,
+  family = gaussian(),
+  prior = priors_trait,
+  sample_prior = "only",
+  chains = 2,
+  iter = 2000,
+  cores = 2,
+  seed = 123,
+  backend = "cmdstanr",
+  file = "./data/processed/fits/prior_only_trait_level_sympatry_only_complex"
+)
+
+pp_check(prior_only_trait_complex, type = "dens_overlay", ndraws = 50) +
+  coord_cartesian(xlim = c(-10, 10)) +
+  labs(
+    title = "Prior predictive check (complex songs, trait-level priors)",
+    subtitle = "y: observed standardized frequency-range distance; y_rep: draws from the priors only"
+  )
+
+```
+
+```{r brms model fitting complex}
+#| eval: false
+ 
+distance_vars_sc <- paste0(distance_vars, "_sc")
+
+for (v in distance_vars) {
+  sympatric_pairs_complex[[paste0(v, "_sc")]] <- as.numeric(scale(sympatric_pairs_complex[[v]]))
+}
+
+# tighter, genuinely regularizing priors now that the response is
+# standardized (mean 0, SD 1) - a coefficient near |1| would already be
+# an implausibly large effect
+priors <- c(
+  prior(normal(0, 1),   class = "Intercept"),
+  prior(normal(0, 0.5), class = "b"),
+  prior(exponential(2), class = "sd"),
+  prior(exponential(1), class = "sigma")
+)
+
+for (resp in distance_vars_sc) {
+  cat("\n=============================\n")
+  cat("Fitting:", resp, "\n")
+  cat("=============================\n")
+
+  form_sympatry <- bf(
+    as.formula(
+      paste0(
+        resp,
+        " ~ sympatry + ",
+        "(1 | species_pair) + ",
+        "(1 | mm(pop1, pop2)) + ",
+        "(1 | mm(individual1, individual2))"
+      )
+    )
+  )
+
+  mod <- brm(
+    formula = form_sympatry,
+    data = sympatric_pairs_complex,
+    family = gaussian(),
+    prior = priors,
+    cores = 4, chains = 4, iter = 10000,
+    backend = "cmdstanr", threads = threading(8),
+    control = list(adapt_delta = 0.95, max_treedepth = 15),
+    file = paste0("./data/processed/fits/", resp, "_sympatry_only_complex_fit")
+  )
+}
+
+```
+
+```{r}
+#| results: "asis"
+
+# Find and load all saved brms models
+
+model_files <- list.files(
+  "./data/processed/fits",
+  pattern = "\\.rds$",
+  full.names = TRUE
+)
+
+model_files <- grep("_complex", model_files, value = TRUE)
+
+model_files <- grep(paste(distance_vars, collapse = "|"), model_files, value = TRUE)
+# not "_distance_sympatry_..." - every complex per-feature response is
+# refit under a "_sc" suffix (see distance_vars_sc above), which sits
+# between "distance" and "sympatry" and would break that stricter match
+model_files <- grep("_sympatry_only", model_files, value = TRUE)
+
+plot_brms_heatmap(model_files = model_files)
+
+```
+
+The table below gives, for every trait-level model above, the posterior mean, standard error and 95% uncertainty interval of each predictor; the last column flags intervals that exclude zero. Like the heatmap, it only includes models whose fit file exists.
+
+```{r feature effects table complex}
+
+fixef_tab_complex <- fixef_table(model_files)
+
+if (!is.null(fixef_tab_complex)) print(fixef_tab_complex)
+
+```
+
+The expandable section below provides the complete Bayesian model summaries underlying those estimates, including posterior parameter estimates, uncertainty intervals, and convergence diagnostics.
+
+::: {.callout-note collapse="true"}
+##### Model results
+
+<!-- # ::: {.panel-tabset} -->
+
+```{r}
+#| results: asis
+#| eval: false
+
+for (i in model_files) {
+
+  model_name <- tools::file_path_sans_ext(basename(i))
+
+  model_name <- gsub("_sympatry_only.*", "", model_name)
+  
+  cat("## ", model_name, "\n\n")
+
+  extended_summary(
+    read.file = i,
+    highlight = TRUE,
+    trace.palette = viridis::mako,
+    remove.intercepts = TRUE,
+    print.name = FALSE
+  )
+
+  cat("\n\n")
+}
+```
+
+<!-- # ::: -->
+:::
+
+The expandable section below shows a posterior predictive check (density overlay, 50 replicated data sets) for every trait-level model that has finished fitting; models whose fit file is missing are skipped.
+
+::: {.callout-note collapse="true"}
+##### Posterior predictive checks
+
+```{r posterior predictive checks by feature complex}
+#| results: "asis"
+#| fig-height: 3.5
+
+for (i in model_files) {
+
+  fit <- tryCatch(readRDS(i), error = function(e) NULL)
+  if (is.null(fit)) next
+
+  model_name <- gsub("_sympatry_only.*", "", tools::file_path_sans_ext(basename(i)))
+
+  cat("\n\n**", model_name, "**\n\n", sep = "")
+
+  # base::print - the document redefines print() as a kable wrapper
+  base::print(
+    pp_check(fit, type = "dens_overlay", ndraws = 50) +
+      labs(title = model_name)
+  )
+
+  cat("\n\n")
+
+  rm(fit)
+  invisible(gc(verbose = FALSE))
+}
+
+```
+:::
+
+##### Divergent transitions, per feature
+
+The same divergence diagnostics for every trait-level model that has finished fitting: number and percentage of divergent post-warmup draws, divergences per chain, draws that hit the maximum treedepth, the median sympatry coefficient in non-divergent vs divergent draws, and the mean percentile of the divergent draws within the posterior of the species-pair SD (values near 0 indicate divergences piled up at small SD values).
+
+```{r divergences by feature complex}
+
+div_tab_complex <- divergence_table(model_files)
+
+if (!is.null(div_tab_complex)) print(div_tab_complex)
+
+```
+
+##### Contrasts among population pairs, per feature
+
+The same population-pair contrasts computed for the overall PCA-based model above, now repeated for every individual acoustic feature that has finished fitting: expected acoustic distance for each observed population pair (species-pair and population multi-membership effects included, individual effects set to zero), then sympatric vs allopatric population-pair differences within each species pair. Each feature gets its own plot (faceted by species pair, as in the main-model version above) rather than being crowded into one combined figure. As with the main-model version, contrasts sharing a population pair are not independent of each other.
+
+```{r population pair contrasts by feature complex}
+#| results: "asis"
+#| fig-height: 5
+
+pop_contrasts_by_feature_complex <- population_pair_contrasts_by_feature(
+  model_files = model_files,
+  dat = sympatric_pairs_complex
+)
+
+if (!is.null(pop_contrasts_by_feature_complex)) {
+  for (feat in names(pop_contrasts_by_feature_complex$plots)) {
+    cat("\n\n**", feat, "**\n\n", sep = "")
+    base::print(pop_contrasts_by_feature_complex$plots[[feat]])
+    cat("\n\n")
+  }
+}
+
+```
+
+```{r population pair contrast table by feature complex}
+
+if (!is.null(pop_contrasts_by_feature_complex)) print(pop_contrasts_by_feature_complex$contrasts)
+
+```
+
+::: {.alert .alert-info}
+##### Summary {.unnumbered .unlisted}
+
+*To be written after the sympatry-only models are fitted.*
+
+:::
+
+## Combined results heatmap
+
+The heatmap below combines every complex-song model fitted so far - the song-level PCA-distance model and every per-feature model, including `elm_pca_distance` - into a single view. Since models may still be running in the background, this only plots whichever fits have already been saved; it updates automatically as more finish, and produces no error if some (or all) are still missing.
+
+```{r combined heatmap complex}
+#| results: "asis"
+
+# combine every complex-song fit (main song-level model + all
+# per-feature models) into a single heatmap; safe to run at any point
+# while models are still fitting, since plot_brms_heatmap() skips
+# missing/unreadable files rather than erroring
+
+model_files_complex <- list.files(
+  "./data/processed/fits",
+  pattern = "\\.rds$",
+  full.names = TRUE
+)
+
+model_files_complex <- grep("complex", model_files_complex, value = TRUE)
+# sympatry-only fits only (excludes earlier model versions, prior-only
+# fits and species-pair slope fits saved in the same folder)
+model_files_complex <- grep("sympatry_only_complex_fit", model_files_complex, value = TRUE)
+model_files_complex <- grep("by_species_pair|prior_only", model_files_complex, value = TRUE, invert = TRUE)
+
+plot_brms_heatmap(model_files = model_files_complex)
+
+```
+
+<!-- add packages used, system details and versions  -->
+
+::: {.callout-note collapse="true"}
+## Session information {.unnumbered .unlisted}
+
+```{r session info}
+#| echo: false
+
+# if devtools is installed use devtools::session_info()
+if (requireNamespace("devtools", quietly = TRUE)) {
+  devtools::session_info()
+} else {
+  sessionInfo()
+}
+```
+:::

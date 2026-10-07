@@ -1,0 +1,503 @@
+---
+title: "Step 3: Population shifts towards or away from congeners"
+subtitle: Vocal character displacement in southern capuchinos
+author: <a href="https://marce10.github.io/">Marcelo Araya-Salas</a>
+date: "`r Sys.Date()`"
+toc: true
+toc-depth: 4
+toc-location: left
+number-sections: true
+highlight-style: pygments
+format:
+  html:
+    df-print: kable
+    code-fold: true
+    code-tools: true
+    css: qmd.css
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r set root directory}
+#| eval: true
+#| echo: false
+#| warning: false
+
+# install knitr package if not installed
+if (!requireNamespace("knitr", quietly = TRUE)) {
+  install.packages("knitr")
+}
+
+# set working directory
+knitr::opts_knit$set(root.dir = "..")
+```
+
+```{r add link to github repo}
+#| eval: true
+#| output: asis
+#| echo: false
+
+# print link to github repo if any
+if (file.exists("./.git/config")) {
+  config <- readLines("./.git/config")
+  url <- grep("url", config, value = TRUE)
+  url <- gsub("\\turl = |.git$", "", url)
+  if (length(url) > 0)
+    if (nchar(url) > 1)
+      cat("\nSource code and data found at [", url, "](", url, ")", sep = "")
+}
+```
+
+```{r setup style}
+#| message: false
+#| warning: false
+
+# options to customize chunk outputs
+knitr::opts_chunk$set(
+  message = FALSE
+)
+```
+
+<!-- skyblue box -->
+
+::: {.alert .alert-info}
+# Purpose {.unnumbered .unlisted}
+
+-   Evaluate whether populations that co-occur with a congener are acoustically closer to (convergence) or farther from (divergence) that congener's song than conspecific populations that do not co-occur with it
+:::
+
+The sympatry models (Step 2) show whether heterospecific songs are more or less different in sympatry, but a dyadic comparison cannot tell which species changed. Here we ask, for each focal species, whether populations that co-occur with a given congener are acoustically closer to (convergence) or farther from (divergence) that congener's song than conspecific populations that do not co-occur with it.
+
+-   Pairs are always oriented as focal song × congener song.
+-   Pairs recorded at the same locality (the sympatric comparisons used in Step 2) are excluded. Congener songs therefore act as an external reference, and this test does not reuse the Step 2 contrast.
+-   `cooccur = 1` when the focal population's locality also has the congener.
+-   A shift can only be tested when the focal species has at least one population with the congener and at least one without it, and when the congener was also recorded at a locality other than the co-occurring focal population(s). Combinations that fail either condition are listed but not modelled. For example, iberaensis and palustris were recorded only at E_Ibera. Once same-locality pairs are removed, the E_Ibera hypoxantha population has no congener songs to be compared with, so hypoxantha vs. iberaensis and hypoxantha vs. palustris cannot be tested this way.
+
+# Load packages and custom functions {.unnumbered .unlisted}
+
+```{r load packages}
+#| warning: false
+
+# install knitr package if not installed
+if (!requireNamespace("sketchy", quietly = TRUE)) {
+  install.packages("sketchy")
+}
+
+packages <- c(
+  "knitr",
+  "dplyr",
+  "tidyverse",
+  "vegan",
+  "ecodist",
+  "brms",
+  github = "maRce10/brmsish",
+  "kableExtra",
+  "ggplot2",
+  "ggtext",
+  "ggh4x",
+  github = "stan-dev/cmdstanr"
+)
+
+# install/load packages
+sketchy::load_packages(packages = packages)
+
+options(knitr.kable.NA = '', brms.file_refit = "never")
+
+# set theme globally
+theme_set(theme_classic(base_size = 20))
+
+# custom functions (shared by all reports)
+source("./scripts/functions.R")
+
+```
+
+# Load data {.unnumbered .unlisted}
+
+Pairwise data sets created in [Data preparation](0_data_preparation.qmd).
+
+```{r load step inputs}
+
+step_inputs_simple <- readRDS("./data/processed/step_inputs_simple.rds")
+pairs_simple <- step_inputs_simple$pairs
+occ_simple <- step_inputs_simple$occ
+
+step_inputs_complex <- readRDS("./data/processed/step_inputs_complex.rds")
+pairs_complex <- step_inputs_complex$pairs
+occ_complex <- step_inputs_complex$occ
+
+```
+
+# Simple songs
+
+```{r shift combinations simple}
+
+shift_combos_simple <- shift_combinations(occ_simple)
+
+print(shift_combos_simple)
+
+```
+
+$$
+\begin{split}
+\text{acoustic distance}_{\text{focal, congener}} &\sim \text{cooccur} \\
+&\quad + (1 \mid \text{focal population}) + (1 \mid \text{congener population}) \\
+&\quad + (1 \mid \text{focal individual}) + (1 \mid \text{congener individual})
+\end{split}
+$$
+
+Because pairs are oriented, focal and congener populations (and individuals) enter as separate crossed random effects rather than as multi-membership terms. The co-occurrence effect is a property of focal populations. It is therefore evaluated against the variation among focal populations (`sd(pop1)`), which is the appropriate and conservative unit of replication given the very small number of populations involved. The response is standardized within each focal–congener dataset, with the same regularizing priors as in Step 1.
+
+```{r population shift models simple}
+
+shift_models_simple <- list()
+shift_dat_simple <- list()
+
+for (k in which(shift_combos_simple$testable)) {
+
+  focal <- shift_combos_simple$focal[k]
+  congener <- shift_combos_simple$congener[k]
+  nm <- paste(focal, "vs", congener, sep = "_")
+
+  shift_dat_simple[[nm]] <- population_shift_data(
+    pairs = pairs_simple,
+    focal = focal,
+    congener = congener,
+    occ = occ_simple
+  )
+
+  shift_models_simple[[nm]] <- brm(
+    acoustic_distance_sc ~ cooccur +
+      (1 | pop1) + (1 | pop2) +
+      (1 | individual1) + (1 | individual2),
+    data = shift_dat_simple[[nm]],
+    family = gaussian(),
+    prior = priors_ws,
+    cores = 4,
+    chains = 4,
+    iter = 10000,
+    backend = "cmdstanr",
+    threads = threading(8),
+    control = list(adapt_delta = 0.95, max_treedepth = 15),
+    file = paste0("./data/processed/fits/population_shift_", nm, "_simple_fit")
+  )
+}
+
+```
+
+Prior predictive checks for the population shift models:
+
+```{r prior predictive check population shift simple}
+#| fig-height: 4
+
+for (nm in names(shift_dat_simple)) {
+
+  prior_only_shift <- brm(
+    acoustic_distance_sc ~ cooccur +
+      (1 | pop1) + (1 | pop2) +
+      (1 | individual1) + (1 | individual2),
+    data = shift_dat_simple[[nm]],
+    family = gaussian(),
+    prior = priors_ws,
+    sample_prior = "only",
+    chains = 2,
+    iter = 2000,
+    cores = 2,
+    seed = 123,
+    backend = "cmdstanr",
+    file = paste0("./data/processed/fits/prior_only_population_shift_", nm, "_simple")
+  )
+
+  # base::print - the document redefines print() as a kable wrapper
+  base::print(prior_check_plot(
+    prior_only_shift,
+    paste0("Prior predictive check (simple songs, ", gsub("_vs_", " vs. ", nm), ")")
+  ))
+}
+
+```
+
+Mean acoustic distance from each focal population to the congener's songs recorded elsewhere (points: population means; bars: 95% intervals of the mean):
+
+```{r population shift plot simple}
+#| fig-height: 5
+
+shift_plot_dat_simple <- do.call(rbind, lapply(names(shift_dat_simple), function(nm) {
+  x <- shift_dat_simple[[nm]]
+  agg <- do.call(rbind, lapply(split(x, x$focal_population), function(p) {
+    data.frame(
+      focal_population = p$focal_population[1],
+      cooccur = p$cooccur[1],
+      mean = mean(p$acoustic_distance),
+      se = sd(p$acoustic_distance) / sqrt(nrow(p))
+    )
+  }))
+  agg$comparison <- gsub("_vs_", " vs. ", nm)
+  agg
+}))
+
+ggplot(shift_plot_dat_simple, aes(x = focal_population, y = mean, color = cooccur)) +
+  geom_pointrange(aes(ymin = mean - 1.96 * se, ymax = mean + 1.96 * se), size = 0.8) +
+  facet_wrap(~ comparison, scales = "free_x") +
+  scale_color_viridis_d(option = "mako", begin = 0.3, end = 0.7,
+                        labels = c("0" = "No", "1" = "Yes"),
+                        name = "Co-occurs\nwith congener") +
+  labs(x = "Focal population", y = "Acoustic distance to congener") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+Co-occurrence effects (negative = focal populations living with the congener are closer to its song, i.e. convergence; positive = divergence):
+
+```{r population shift effects simple}
+
+shift_tab_simple <- do.call(rbind, lapply(names(shift_models_simple), function(nm) {
+  fe <- as.data.frame(fixef(shift_models_simple[[nm]]))["cooccur1", ]
+  data.frame(
+    Comparison = gsub("_vs_", " vs. ", nm),
+    Estimate = round(fe$Estimate, 3),
+    SE = round(fe$Est.Error, 3),
+    `l-95% UI` = round(fe$Q2.5, 3),
+    `u-95% UI` = round(fe$Q97.5, 3),
+    `UI excludes 0` = ifelse(fe$Q2.5 > 0 | fe$Q97.5 < 0, "yes", "no"),
+    check.names = FALSE
+  )
+}))
+
+print(shift_tab_simple)
+
+```
+
+The same effects expressed relative to the typical difference among focal populations (`b_cooccur1 / sd(pop1)`). Values near ±1 mean the co-occurrence shift is about as large as an ordinary between-population difference:
+
+```{r population shift relative simple}
+
+rel_tab_simple <- do.call(rbind, lapply(names(shift_models_simple), function(nm) {
+  cbind(
+    comparison = gsub("_vs_", " vs. ", nm),
+    shift_relative_to_population_sd(shift_models_simple[[nm]])
+  )
+}))
+
+print(rel_tab_simple)
+
+```
+
+::: {.callout-note collapse="true"}
+## Population shift model summaries
+
+```{r population shift summaries simple}
+#| results: "asis"
+
+for (nm in names(shift_models_simple)) {
+
+  cat("##### ", gsub("_vs_", " vs. ", nm), "\n\n")
+
+  extended_summary(
+    shift_models_simple[[nm]],
+    highlight = TRUE,
+    trace.palette = viridis::mako,
+    remove.intercepts = TRUE,
+    print.name = FALSE
+  )
+
+  cat("\n\n")
+}
+
+```
+:::
+
+# Complex songs
+
+```{r shift combinations complex}
+
+shift_combos_complex <- shift_combinations(occ_complex)
+
+print(shift_combos_complex)
+
+```
+
+$$
+\begin{split}
+\text{acoustic distance}_{\text{focal, congener}} &\sim \text{cooccur} \\
+&\quad + (1 \mid \text{focal population}) + (1 \mid \text{congener population}) \\
+&\quad + (1 \mid \text{focal individual}) + (1 \mid \text{congener individual})
+\end{split}
+$$
+
+Because pairs are oriented, focal and congener populations (and individuals) enter as separate crossed random effects rather than as multi-membership terms. The co-occurrence effect is a property of focal populations. It is therefore evaluated against the variation among focal populations (`sd(pop1)`), which is the appropriate and conservative unit of replication given the very small number of populations involved. The response is standardized within each focal–congener dataset, with the same regularizing priors as in Step 1.
+
+```{r population shift models complex}
+
+shift_models_complex <- list()
+shift_dat_complex <- list()
+
+for (k in which(shift_combos_complex$testable)) {
+
+  focal <- shift_combos_complex$focal[k]
+  congener <- shift_combos_complex$congener[k]
+  nm <- paste(focal, "vs", congener, sep = "_")
+
+  shift_dat_complex[[nm]] <- population_shift_data(
+    pairs = pairs_complex,
+    focal = focal,
+    congener = congener,
+    occ = occ_complex
+  )
+
+  shift_models_complex[[nm]] <- brm(
+    acoustic_distance_sc ~ cooccur +
+      (1 | pop1) + (1 | pop2) +
+      (1 | individual1) + (1 | individual2),
+    data = shift_dat_complex[[nm]],
+    family = gaussian(),
+    prior = priors_ws,
+    cores = 4,
+    chains = 4,
+    iter = 10000,
+    backend = "cmdstanr",
+    threads = threading(8),
+    control = list(adapt_delta = 0.95, max_treedepth = 15),
+    file = paste0("./data/processed/fits/population_shift_", nm, "_complex_fit")
+  )
+}
+
+```
+
+Prior predictive checks for the population shift models:
+
+```{r prior predictive check population shift complex}
+#| fig-height: 4
+
+for (nm in names(shift_dat_complex)) {
+
+  prior_only_shift <- brm(
+    acoustic_distance_sc ~ cooccur +
+      (1 | pop1) + (1 | pop2) +
+      (1 | individual1) + (1 | individual2),
+    data = shift_dat_complex[[nm]],
+    family = gaussian(),
+    prior = priors_ws,
+    sample_prior = "only",
+    chains = 2,
+    iter = 2000,
+    cores = 2,
+    seed = 123,
+    backend = "cmdstanr",
+    file = paste0("./data/processed/fits/prior_only_population_shift_", nm, "_complex")
+  )
+
+  # base::print - the document redefines print() as a kable wrapper
+  base::print(prior_check_plot(
+    prior_only_shift,
+    paste0("Prior predictive check (complex songs, ", gsub("_vs_", " vs. ", nm), ")")
+  ))
+}
+
+```
+
+Mean acoustic distance from each focal population to the congener's songs recorded elsewhere (points: population means; bars: 95% intervals of the mean):
+
+```{r population shift plot complex}
+#| fig-height: 5
+
+shift_plot_dat_complex <- do.call(rbind, lapply(names(shift_dat_complex), function(nm) {
+  x <- shift_dat_complex[[nm]]
+  agg <- do.call(rbind, lapply(split(x, x$focal_population), function(p) {
+    data.frame(
+      focal_population = p$focal_population[1],
+      cooccur = p$cooccur[1],
+      mean = mean(p$acoustic_distance),
+      se = sd(p$acoustic_distance) / sqrt(nrow(p))
+    )
+  }))
+  agg$comparison <- gsub("_vs_", " vs. ", nm)
+  agg
+}))
+
+ggplot(shift_plot_dat_complex, aes(x = focal_population, y = mean, color = cooccur)) +
+  geom_pointrange(aes(ymin = mean - 1.96 * se, ymax = mean + 1.96 * se), size = 0.8) +
+  facet_wrap(~ comparison, scales = "free_x") +
+  scale_color_viridis_d(option = "mako", begin = 0.3, end = 0.7,
+                        labels = c("0" = "No", "1" = "Yes"),
+                        name = "Co-occurs\nwith congener") +
+  labs(x = "Focal population", y = "Acoustic distance to congener") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+Co-occurrence effects (negative = focal populations living with the congener are closer to its song, i.e. convergence; positive = divergence):
+
+```{r population shift effects complex}
+
+shift_tab_complex <- do.call(rbind, lapply(names(shift_models_complex), function(nm) {
+  fe <- as.data.frame(fixef(shift_models_complex[[nm]]))["cooccur1", ]
+  data.frame(
+    Comparison = gsub("_vs_", " vs. ", nm),
+    Estimate = round(fe$Estimate, 3),
+    SE = round(fe$Est.Error, 3),
+    `l-95% UI` = round(fe$Q2.5, 3),
+    `u-95% UI` = round(fe$Q97.5, 3),
+    `UI excludes 0` = ifelse(fe$Q2.5 > 0 | fe$Q97.5 < 0, "yes", "no"),
+    check.names = FALSE
+  )
+}))
+
+print(shift_tab_complex)
+
+```
+
+The same effects expressed relative to the typical difference among focal populations (`b_cooccur1 / sd(pop1)`). Values near ±1 mean the co-occurrence shift is about as large as an ordinary between-population difference:
+
+```{r population shift relative complex}
+
+rel_tab_complex <- do.call(rbind, lapply(names(shift_models_complex), function(nm) {
+  cbind(
+    comparison = gsub("_vs_", " vs. ", nm),
+    shift_relative_to_population_sd(shift_models_complex[[nm]])
+  )
+}))
+
+print(rel_tab_complex)
+
+```
+
+::: {.callout-note collapse="true"}
+## Population shift model summaries
+
+```{r population shift summaries complex}
+#| results: "asis"
+
+for (nm in names(shift_models_complex)) {
+
+  cat("##### ", gsub("_vs_", " vs. ", nm), "\n\n")
+
+  extended_summary(
+    shift_models_complex[[nm]],
+    highlight = TRUE,
+    trace.palette = viridis::mako,
+    remove.intercepts = TRUE,
+    print.name = FALSE
+  )
+
+  cat("\n\n")
+}
+
+```
+:::
+
+<!-- add packages used, system details and versions  -->
+
+::: {.callout-note collapse="true"}
+## Session information {.unnumbered .unlisted}
+
+```{r session info}
+#| echo: false
+
+# if devtools is installed use devtools::session_info()
+if (requireNamespace("devtools", quietly = TRUE)) {
+  devtools::session_info()
+} else {
+  sessionInfo()
+}
+```
+:::

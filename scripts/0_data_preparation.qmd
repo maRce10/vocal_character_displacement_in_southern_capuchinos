@@ -1,0 +1,1502 @@
+---
+title: "Data preparation"
+subtitle: Vocal character displacement in southern capuchinos
+author: <a href="https://marce10.github.io/">Marcelo Araya-Salas</a>
+date: "`r Sys.Date()`"
+toc: true
+toc-depth: 4
+toc-location: left
+number-sections: true
+highlight-style: pygments
+format:
+  html:
+    df-print: kable
+    code-fold: true
+    code-tools: true
+    css: qmd.css
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r set root directory}
+#| eval: true
+#| echo: false
+#| warning: false
+
+# install knitr package if not installed
+if (!requireNamespace("knitr", quietly = TRUE)) {
+  install.packages("knitr")
+}
+
+# set working directory
+knitr::opts_knit$set(root.dir = "..")
+```
+
+```{r add link to github repo}
+#| eval: true
+#| output: asis
+#| echo: false
+
+# print link to github repo if any
+if (file.exists("./.git/config")) {
+  config <- readLines("./.git/config")
+  url <- grep("url", config, value = TRUE)
+  url <- gsub("\\turl = |.git$", "", url)
+  if (length(url) > 0)
+    if (nchar(url) > 1)
+      cat("\nSource code and data found at [", url, "](", url, ")", sep = "")
+}
+```
+
+```{r setup style}
+#| message: false
+#| warning: false
+
+# options to customize chunk outputs
+knitr::opts_chunk$set(
+  message = FALSE
+)
+```
+
+<!-- skyblue box -->
+
+::: {.alert .alert-info}
+# Purpose {.unnumbered .unlisted}
+
+-   Run principal component analyses on element- and song-level acoustic features of simple and complex songs
+-   Compute pairwise acoustic and geographic distances between songs and save the data sets used in the analysis steps
+:::
+
+# Load packages and custom functions {.unnumbered .unlisted}
+
+```{r load packages}
+#| warning: false
+
+# install knitr package if not installed
+if (!requireNamespace("sketchy", quietly = TRUE)) {
+  install.packages("sketchy")
+}
+
+packages <- c(
+  "knitr",
+  "dplyr",
+  "tidyverse",
+  "vegan",
+  "ecodist",
+  "brms",
+  github = "maRce10/brmsish",
+  "kableExtra",
+  "ggplot2",
+  "ggtext",
+  "ggh4x",
+  github = "stan-dev/cmdstanr"
+)
+
+# install/load packages
+sketchy::load_packages(packages = packages)
+
+options(knitr.kable.NA = '', brms.file_refit = "never")
+
+# set theme globally
+theme_set(theme_classic(base_size = 20))
+
+# custom functions (shared by all reports)
+source("./scripts/functions.R")
+
+```
+
+# Simple songs
+
+## Prepare element level data
+
+```{r read data simple elm}
+
+simple_elm <- read.csv("./data/raw/Sporophila song data_elmt-level plus PCA_simple.csv")
+
+# remove all columns that start with "PC"
+simple_elm <- simple_elm[, !grepl("^PC", names(simple_elm))]
+
+simple_elm$Population <- simple_elm$Lat <- simple_elm$Lon <- NULL
+
+individual_coord <- read.csv("./data/raw/Coordenadas_individuos_simple_songs.csv")
+
+# assign coordinates to each individual
+simple_elm_lat_long <- simple_elm |>
+  left_join(individual_coord, by = "Individual")
+
+```
+
+### Select variables and filter populations
+
+```{r filter data simple elm}
+
+vars <- c(
+  "Q1.Time..s.",
+  "Q3.Time..s.",
+  "Time.5...s.",
+  "Time.95...s.",
+  "Delta.Time..s.",
+  "Dur.90...s.",
+  "IQR.Dur..s.",
+  "Peak.Time..s.",
+  "Center.Time..s.",
+  "Q1.Freq..Hz.",
+  "Q3.Freq..Hz.",
+  "Center.Freq..Hz.",
+  "Freq.5...Hz.",
+  "Freq.95...Hz.",
+  "Delta.Freq..Hz.",
+  "IQR.BW..Hz.",
+  "BW.90...Hz.",
+  "Max.Freq..Hz.",
+  "Peak.Freq..Hz.",
+  "meanfreq",
+  "sd",
+  "freq.median",
+  "freq.Q25",
+  "freq.Q75",
+  "freq.IQR",
+  "time.median",
+  "time.Q25",
+  "time.Q75",
+  "time.IQR",
+  "skew",
+  "kurt",
+  "sp.ent",
+  "time.ent",
+  "entropy",
+  "sfm",
+  "meandom",
+  "mindom",
+  "maxdom",
+  "dfrange",
+  "modindx",
+  "startdom",
+  "enddom",
+  "dfslope",
+  "meanpeakf"
+)
+
+# select variables that are not highly correlated
+simple_elm_dat <- simple_elm_lat_long[, c("Individual", "Lat", "Lon", "species", "Population", "location", "song", vars)]
+
+# remove individuals from underrepresented populations
+simple_elm_dat <- filter(simple_elm_dat, Population != "Pal_ER")
+simple_elm_dat <- filter(simple_elm_dat, Population != "NA")
+
+simple_elm_dat$Individual  <- factor(simple_elm_dat$Individual)
+simple_elm_dat$species     <- factor(simple_elm_dat$species)
+simple_elm_dat$Population  <- factor(simple_elm_dat$Population)
+simple_elm_dat$location    <- factor(simple_elm_dat$location)
+simple_elm_dat$song    <- factor(simple_elm_dat$song)
+
+simple_elm_dat <- simple_elm_dat[complete.cases(simple_elm_dat), ]
+```
+
+### Principal Component Analysis
+
+```{r pca 1 simple elm}
+
+# run PCA on acoustic variables
+pca <- prcomp(
+  simple_elm_dat[, vars],
+  center = TRUE,
+  scale. = TRUE
+)
+
+## Run PCA Inspect variance explained summary(pca)
+
+# plot rotation values by PC
+pca_rot <- as.data.frame(pca$rotation[, 1:5])
+pca_var <- round(summary(pca)$importance[2, ] * 100)
+
+```
+
+We used the first `r n_pcs_broken_stick(pca)` principal components (PCs), selected using the broken-stick criterion, for subsequent analyses, which together explained `r round(cumsum(summary(pca)$importance[2, ])[n_pcs_broken_stick(pca)] * 100, 1)`% of the variance in the data.
+
+```{r pca 2  simple elm}
+
+pca_rot_stck <- stack(pca_rot)
+
+pca_rot_stck$variable <- rownames(pca_rot)
+pca_rot_stck$values[pca_rot_stck$ind == "PC1"] <- pca_rot_stck$values[pca_rot_stck$ind ==
+    "PC1"]
+pca_rot_stck$Sign <- ifelse(pca_rot_stck$values > 0, "Positive", "Negative")
+pca_rot_stck$rotation <- abs(pca_rot_stck$values)
+pca_rot_stck$ind_var <- paste0(pca_rot_stck$ind, " (", sapply(pca_rot_stck$ind,
+    function(x) pca_var[names(pca_var) == x]), "%)")
+
+pca_rot_stck$top_vars <- ave(abs(pca_rot_stck$values), pca_rot_stck$ind,
+    FUN = function(x) {
+
+        # Order decreasing
+        ord <- order(x, decreasing = TRUE)
+        x_sorted <- x[ord]
+
+        # Cumulative proportion
+        cumprop <- cumsum(x_sorted)/sum(x_sorted)
+
+        selected_sorted <- cumprop <= 0.5  # variables with 50% of contribution 
+        selected_sorted[which(cumprop >= 0.5)[1]] <- TRUE
+
+        # Return logical vector in original order
+        selected <- logical(length(x))
+        selected[ord] <- selected_sorted
+
+        selected
+    })
+
+# Create facet-specific variable
+pca_rot_stck$var_facet <- paste(pca_rot_stck$ind, pca_rot_stck$variable,
+    sep = "_")
+
+# Reorder within each ind by rotation (largest at top after
+# coord_flip)
+pca_rot_stck <- do.call(rbind, lapply(split(pca_rot_stck, pca_rot_stck$ind),
+    function(df) {
+
+        df$var_facet <- factor(df$var_facet, levels = df$var_facet[order(df$rotation)])
+
+        df
+    }))
+
+# add which variables are stable
+stable_df <- get_stable_loadings(pca, pcs = 5, B = 1000, cum_threshold = 0.5,
+    freq_threshold = 0.5, seed = 123)
+
+pca_rot_stck <- merge(pca_rot_stck, stable_df, by = c("variable",
+    "ind"), all.x = TRUE)
+
+# variables missing from stable_df (e.g. never among the top loadings for
+# that PC) come back as NA from the left join; treat those as "not stable"
+# rather than letting NA propagate into the plot aesthetics below
+pca_rot_stck$stable[is.na(pca_rot_stck$stable)] <- FALSE
+
+# fully opaque bars for stable variables, more transparent for the rest
+# (previously ifelse(stable, 1, 1) - always 1 regardless of stability)
+pca_rot_stck$top_vars <- ifelse(pca_rot_stck$stable, 1, 0.4)
+
+# Build colored labels per row
+
+# escape characters that markdown/HTML treats specially (gridtext, used by
+# element_markdown() below, parses these labels as markdown-with-HTML; an
+# unescaped &, <, > or an odd number of _ / * in a variable name can break
+# that parser and silently fail to render the whole plot)
+escape_markdown <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;", x, fixed = TRUE)
+  x <- gsub(">", "&gt;", x, fixed = TRUE)
+  x <- gsub("_", "&#95;", x, fixed = TRUE)
+  x <- gsub("*", "&#42;", x, fixed = TRUE)
+  x
+}
+
+# Colored labels: black for stable variables, gray for the rest
+# (previously compared stable < 1.1, which is true whether stable is 0 or
+# 1, so every label always took the black branch)
+pca_rot_stck$label_col <- ifelse(
+  pca_rot_stck$stable,
+  paste0("<span style='color:black;'>", escape_markdown(pca_rot_stck$variable), "</span>"),
+  paste0("<span style='color:gray50;'>", escape_markdown(pca_rot_stck$variable), "</span>")
+)
+
+# Named vector for labels
+label_vec <- setNames(pca_rot_stck$label_col, pca_rot_stck$var_facet)
+
+# absolute CI
+pca_rot_stck$ci_low_plot <- abs(pca_rot_stck$ci_lower)
+pca_rot_stck$ci_high_plot <- abs(pca_rot_stck$ci_upper)
+
+# Plot
+# alpha is used directly as a numeric value (scale_alpha_identity) rather
+# than mapped through as.factor()/scale_alpha_manual(); the previous version
+# passed the whole top_vars column as "values" to scale_alpha_manual, which
+# expects one value per factor level, not per row - fragile even before the
+# always-1 bug above was fixed
+ggplot(pca_rot_stck, aes(x = var_facet, y = rotation, fill = Sign,
+    alpha = top_vars)) + geom_col() + coord_flip() + scale_alpha_identity(guide = NULL) +
+    scale_x_discrete(labels = label_vec, name = "Variable") +
+    labs(x = "Rotation") + scale_fill_viridis_d(alpha = 0.7, begin = 0.2,
+    end = 0.8) + facet_wrap(~ind_var, scales = "free_y", nrow = 3) + theme_classic() +
+    theme(axis.text.y = element_markdown())
+
+```
+
+```{r pca scores simple elm}
+
+# bind PCA scores with metadata
+elm_pca_scores <- cbind(
+  pca$x,
+  simple_elm_dat[, c(
+    "Population",
+    "species",
+    "location",
+    "Individual",
+    "song",
+    "Lat",
+    "Lon")]
+)
+
+# select the PCs retained by the broken-stick criterion
+pcs_elm <- grep("^PC", names(elm_pca_scores), value = TRUE)[seq_len(n_pcs_broken_stick(pca))]
+
+elm_pca_scores <- elm_pca_scores |>
+  mutate(
+    across(all_of(pcs_elm), ~ as.numeric(.x)),
+    Lat = as.numeric(Lat),
+    Lon = as.numeric(Lon),
+    species = as.character(species),
+    location = tryCatch(
+      iconv(location, from = "", to = "UTF-8"),
+      error = function(e) location
+    )
+  )
+
+df_clean_simple_elm <- elm_pca_scores |>
+  mutate(
+    across(all_of(pcs_elm), as.numeric),
+    Lat        = as.numeric(Lat),
+    Lon        = as.numeric(Lon),
+    species    = as.character(species),
+    Individual = as.character(Individual),
+    song      = as.character(song)
+  ) |>
+  filter(complete.cases(across(all_of(c(pcs_elm, "Lat", "Lon", "species", "Individual", "song")))))
+
+```
+
+## Prepare Song level data
+
+```{r read data}
+
+simple_songs <- read.csv("./data/raw/Sporophila song data_song-level plus MCP MST and PCA_simple songs.csv")
+individual_coord <- read.csv("./data/raw/Coordenadas_individuos_simple_songs.csv")
+
+# assign coordinates to each individual
+simple_songs_lat_long <- simple_songs |>
+  left_join(individual_coord, by = "Individual")
+
+# names(simple_songs_lat_long)
+```
+
+### Select variables and filter populations
+
+-   The song level features used were: peak frequency, number of elements, song duration, song rate, gap duration, frequency range and element diversity (mst)
+
+-   Element duration was excluded as it is an element level features
+
+```{r filter data}
+
+# select variables that are not highly correlated
+simple_song_dat <- simple_songs_lat_long[, c("Individual", "Lat", "Lon", "species", "Population", "location", "song",
+                                  "meanpeakf", "num.elms", 
+                                  "song.duration", "song.rate", "gap.duration",
+                                  "freq.range.Min5toMax95", "mst")]
+
+# remove individuals from underrepresented populations
+simple_song_dat <- filter(simple_song_dat, Population != "Pal_ER")
+simple_song_dat <- filter(simple_song_dat, Population != "NA")
+
+simple_song_dat$Individual  <- factor(simple_song_dat$Individual)
+simple_song_dat$species     <- factor(simple_song_dat$species)
+simple_song_dat$Population  <- factor(simple_song_dat$Population)
+simple_song_dat$location    <- factor(simple_song_dat$location)
+simple_song_dat$song    <- factor(simple_song_dat$song)
+
+```
+
+### Collinearity among song-level features
+
+Before running the analyses we checked whether any of the seven song-level features are redundant with each other. The features enter the analyses in two ways: jointly, in the PCA that defines the multivariate acoustic distance (where correlation among them is expected and is precisely what the PCA summarizes), and separately, as the response of one model each in the feature-based analysis. In the second case, two highly correlated features would yield two near-identical models rather than two independent pieces of evidence, so strongly correlated pairs (|r| ≥ 0.7) should be reduced to a single representative before fitting. The correlation matrix plot shows pairwise Pearson correlations among songs, with pairs above the threshold in bold; the table lists the strongest pairs.
+
+```{r feature collinearity simple}
+
+song_features <- c(
+  "meanpeakf", "num.elms", "song.duration", "song.rate",
+  "gap.duration", "freq.range.Min5toMax95", "mst"
+)
+
+song_feature_labels <- c(
+  "Peak frequency", "Number of elements", "Song duration", "Song rate",
+  "Gap duration", "Frequency range", "Element diversity (mst)"
+)
+
+collin_simple <- check_feature_collinearity(
+  dat = simple_song_dat,
+  features = song_features,
+  labels = song_feature_labels
+)
+
+```
+
+### Principal Component Analysis
+
+```{r pca 1}
+# run PCA on acoustic variables
+pca <- prcomp(
+  simple_song_dat[, c(
+    "meanpeakf",
+    "num.elms",
+    "song.duration",
+    "song.rate",
+    "gap.duration",
+    "freq.range.Min5toMax95",
+    "mst"
+  )],
+  center = TRUE,
+  scale. = TRUE
+)
+
+## Run PCA Inspect variance explained summary(pca)
+
+# plot rotation values by PC
+pca_rot <- as.data.frame(pca$rotation[, 1:5])
+pca_var <- round(summary(pca)$importance[2, ] * 100)
+
+```
+
+We used the first `r n_pcs_broken_stick(pca)` principal components (PCs), selected using the broken-stick criterion, for subsequent analyses, which together explained `r round(cumsum(summary(pca)$importance[2, ])[n_pcs_broken_stick(pca)] * 100, 1)`% of the variance in the data.
+
+```{r pca 2}
+
+pca_rot_stck <- stack(pca_rot)
+
+pca_rot_stck$variable <- rownames(pca_rot)
+pca_rot_stck$values[pca_rot_stck$ind == "PC1"] <- pca_rot_stck$values[pca_rot_stck$ind ==
+    "PC1"]
+pca_rot_stck$Sign <- ifelse(pca_rot_stck$values > 0, "Positive", "Negative")
+pca_rot_stck$rotation <- abs(pca_rot_stck$values)
+pca_rot_stck$ind_var <- paste0(pca_rot_stck$ind, " (", sapply(pca_rot_stck$ind,
+    function(x) pca_var[names(pca_var) == x]), "%)")
+
+pca_rot_stck$top_vars <- ave(abs(pca_rot_stck$values), pca_rot_stck$ind,
+    FUN = function(x) {
+
+        # Order decreasing
+        ord <- order(x, decreasing = TRUE)
+        x_sorted <- x[ord]
+
+        # Cumulative proportion
+        cumprop <- cumsum(x_sorted)/sum(x_sorted)
+
+        selected_sorted <- cumprop <= 0.5  # variables with 50% of contribution 
+        selected_sorted[which(cumprop >= 0.5)[1]] <- TRUE
+
+        # Return logical vector in original order
+        selected <- logical(length(x))
+        selected[ord] <- selected_sorted
+
+        selected
+    })
+
+# Create facet-specific variable
+pca_rot_stck$var_facet <- paste(pca_rot_stck$ind, pca_rot_stck$variable,
+    sep = "_")
+
+# Reorder within each ind by rotation (largest at top after
+# coord_flip)
+pca_rot_stck <- do.call(rbind, lapply(split(pca_rot_stck, pca_rot_stck$ind),
+    function(df) {
+
+        df$var_facet <- factor(df$var_facet, levels = df$var_facet[order(df$rotation)])
+
+        df
+    }))
+
+# add which variables are stable
+stable_df <- get_stable_loadings(pca, pcs = 5, B = 1000, cum_threshold = 0.5,
+    freq_threshold = 0.5, seed = 123)
+
+pca_rot_stck <- merge(pca_rot_stck, stable_df, by = c("variable",
+    "ind"), all.x = TRUE)
+
+# variables missing from stable_df (e.g. never among the top loadings for
+# that PC) come back as NA from the left join; treat those as "not stable"
+# rather than letting NA propagate into the plot aesthetics below
+pca_rot_stck$stable[is.na(pca_rot_stck$stable)] <- FALSE
+
+# fully opaque bars for stable variables, more transparent for the rest
+# (previously ifelse(stable, 1, 1) - always 1 regardless of stability)
+pca_rot_stck$top_vars <- ifelse(pca_rot_stck$stable, 1, 0.4)
+
+# Build colored labels per row
+
+# escape characters that markdown/HTML treats specially (gridtext, used by
+# element_markdown() below, parses these labels as markdown-with-HTML; an
+# unescaped &, <, > or an odd number of _ / * in a variable name can break
+# that parser and silently fail to render the whole plot)
+escape_markdown <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;", x, fixed = TRUE)
+  x <- gsub(">", "&gt;", x, fixed = TRUE)
+  x <- gsub("_", "&#95;", x, fixed = TRUE)
+  x <- gsub("*", "&#42;", x, fixed = TRUE)
+  x
+}
+
+# Colored labels: black for stable variables, gray for the rest
+# (previously compared stable < 1.1, which is true whether stable is 0 or
+# 1, so every label always took the black branch)
+pca_rot_stck$label_col <- ifelse(
+  pca_rot_stck$stable,
+  paste0("<span style='color:black;'>", escape_markdown(pca_rot_stck$variable), "</span>"),
+  paste0("<span style='color:gray50;'>", escape_markdown(pca_rot_stck$variable), "</span>")
+)
+
+# Named vector for labels
+label_vec <- setNames(pca_rot_stck$label_col, pca_rot_stck$var_facet)
+
+# absolute CI
+pca_rot_stck$ci_low_plot <- abs(pca_rot_stck$ci_lower)
+pca_rot_stck$ci_high_plot <- abs(pca_rot_stck$ci_upper)
+
+# Plot
+# alpha is used directly as a numeric value (scale_alpha_identity) rather
+# than mapped through as.factor()/scale_alpha_manual(); the previous version
+# passed the whole top_vars column as "values" to scale_alpha_manual, which
+# expects one value per factor level, not per row - fragile even before the
+# always-1 bug above was fixed
+ggplot(pca_rot_stck, aes(x = var_facet, y = rotation, fill = Sign,
+    alpha = top_vars)) + geom_col() + coord_flip() + scale_alpha_identity(guide = NULL) +
+    scale_x_discrete(labels = label_vec, name = "Variable") +
+    labs(x = "Rotation") + scale_fill_viridis_d(alpha = 0.7, begin = 0.2,
+    end = 0.8) + facet_wrap(~ind_var, scales = "free_y", nrow = 3) + theme_classic() +
+    theme(axis.text.y = element_markdown())
+
+```
+
+```{r pca scores}
+
+# bind PCA scores with metadata
+pca_scores <- cbind(
+  pca$x,
+  simple_song_dat[, c(
+    "Population",
+    "species",
+    "location",
+    "Individual",
+    "song",
+    "Lat",
+    "Lon",
+    "meanpeakf",
+    "num.elms",
+    "song.duration",
+    "song.rate",
+    "gap.duration",
+    "freq.range.Min5toMax95",
+    "mst"
+  )]
+)
+
+# select the PCs retained by the broken-stick criterion
+pcs <- grep("^PC", names(pca_scores), value = TRUE)[seq_len(n_pcs_broken_stick(pca))]
+
+pca_scores <- pca_scores |>
+  mutate(
+    across(all_of(pcs), ~ as.numeric(.x)),
+    Lat = as.numeric(Lat),
+    Lon = as.numeric(Lon),
+    species = as.character(species),
+    location = tryCatch(
+      iconv(location, from = "", to = "UTF-8"),
+      error = function(e) location
+    )
+  )
+```
+
+### Acoustic distances
+
+#### Build pairwise distance dataset
+
+```{r song ids}
+
+df_clean_simple <- pca_scores |>
+  mutate(
+    across(all_of(pcs), as.numeric),
+    Lat        = as.numeric(Lat),
+    Lon        = as.numeric(Lon),
+    species    = as.character(species),
+    Individual = as.character(Individual),
+    population = as.character(location),
+    song      = as.character(song)
+  ) |>
+  filter(complete.cases(across(all_of(c(pcs, "Lat", "Lon", "species", "Individual", "song")))))
+
+# table(df_clean_simple$Population, df_clean_simple$species)
+
+# assign song IDs
+# df_clean_simple$song_id <- 1
+# 
+# for (i in 2:nrow(df_clean_simple)) {
+#   if (df_clean_simple$Individual[i] == df_clean_simple$Individual[i - 1] &&
+#       df_clean_simple$species[i]    == df_clean_simple$species[i - 1]) {
+#     df_clean_simple$song_id[i] <- df_clean_simple$song_id[i - 1]
+#   } else {
+#     df_clean_simple$song_id[i] <- df_clean_simple$song_id[i - 1] + 1
+#   }
+# }
+# 
+# df_clean_simple$song_id <- paste(
+#   df_clean_simple$species,
+#   sapply(strsplit(as.character(df_clean_simple$Population), "_"), "[[", 2),
+#   df_clean_simple$Individual,
+#   df_clean_simple$song_id,
+#   sep = "-"
+# )
+```
+
+#### Convert to long table
+
+```{r scaled acoustic distance matrix}
+
+# acoustic distance between songs (Euclidean multivariate, unscaled PCs)
+agg_df_clean_simple_elm <- aggregate(
+ . ~ song, df_clean_simple_elm[, c(pcs_elm, "song")],
+  FUN = mean
+)
+
+dist_acoustic_mat <- as.matrix(dist(
+  df_clean_simple[, pcs],
+  method = "euclidean"
+))
+
+# and for each feature separately (unscaled)
+dist_meanpeakf_mat <- as.matrix(dist(
+  df_clean_simple[, "meanpeakf"],
+  method = "euclidean"
+))
+
+dist_numelms_mat <- as.matrix(dist(
+  df_clean_simple[, "num.elms"],
+  method = "euclidean"
+))
+
+dist_songduration_mat <- as.matrix(dist(
+  df_clean_simple[, "song.duration"],
+  method = "euclidean"
+))
+
+dist_songrate_mat <- as.matrix(dist(
+  df_clean_simple[, "song.rate"],
+  method = "euclidean"
+))
+
+dist_gapduration_mat <- as.matrix(dist(
+  df_clean_simple[, "gap.duration"],
+  method = "euclidean"
+))
+
+dist_freqrange_mat <- as.matrix(dist(
+  df_clean_simple[, "freq.range.Min5toMax95"],
+  method = "euclidean"
+))
+
+dist_mst_mat <- as.matrix(dist(
+  df_clean_simple[, "mst"],
+  method = "euclidean"
+))
+
+dist_elm_mat <- as.matrix(dist(
+  agg_df_clean_simple_elm[, pcs_elm],
+  method = "euclidean"
+))
+
+rownames(dist_acoustic_mat) <- colnames(dist_acoustic_mat) <- df_clean_simple$song
+
+rownames(dist_elm_mat) <- colnames(dist_elm_mat) <- agg_df_clean_simple_elm$song
+
+# use only upper triangle
+idx <- which(upper.tri(dist_acoustic_mat), arr.ind = TRUE)
+
+dist_acoustic_long <- data.frame(
+  id1      = rownames(dist_acoustic_mat)[idx[, 1]],
+  id2      = colnames(dist_acoustic_mat)[idx[, 2]],
+  acoustic_distance = dist_acoustic_mat[idx],
+  meanpeakf_distance = dist_meanpeakf_mat[idx],
+  numelms_distance = dist_numelms_mat[idx],
+  songduration_distance = dist_songduration_mat[idx],
+  songrate_distance = dist_songrate_mat[idx],
+  gapduration_distance = dist_gapduration_mat[idx],
+  freqrange_distance = dist_freqrange_mat[idx],
+  mst_distance = dist_mst_mat[idx]
+)
+
+dist_acoustic_long$elm_pca_distance <- sapply(seq_len(nrow(dist_acoustic_long)), function(i) {
+    dist_elm_mat[rownames(dist_elm_mat) == dist_acoustic_long$id1[i], colnames(dist_elm_mat) == dist_acoustic_long$id2[i]]
+})
+
+# parse species, population, and individual from song IDs
+parts1 <- strsplit(as.character(dist_acoustic_long$id1), "-")
+parts2 <- strsplit(as.character(dist_acoustic_long$id2), "-")
+
+dist_acoustic_long$species1    <- sapply(dist_acoustic_long$id1, function(x)
+    df_clean_simple$species[df_clean_simple$song == x])
+dist_acoustic_long$population1    <- sapply(dist_acoustic_long$id1, function(x)
+    df_clean_simple$population[df_clean_simple$song == x])
+dist_acoustic_long$individual1    <- sapply(dist_acoustic_long$id1, function(x)
+    df_clean_simple$Individual[df_clean_simple$song == x])
+
+dist_acoustic_long$species2    <- sapply(dist_acoustic_long$id2, function(x)
+    df_clean_simple$species[df_clean_simple$song == x])
+dist_acoustic_long$population2    <- sapply(dist_acoustic_long$id2, function(x)
+    df_clean_simple$population[df_clean_simple$song == x])
+dist_acoustic_long$individual2    <- sapply(dist_acoustic_long$id2, function(x)
+    df_clean_simple$Individual[df_clean_simple$song == x])
+
+# keep only between-species comparisons
+dist_acoustic_long <- dist_acoustic_long[
+  dist_acoustic_long$species1 != dist_acoustic_long$species2, ]
+
+# sympatry flag: 1 if same population, 0 otherwise
+dist_acoustic_long$sympatry <- as.factor(as.integer(
+  dist_acoustic_long$population1 == dist_acoustic_long$population2
+))
+
+# canonical species pair label (sorted alphabetically)
+dist_acoustic_long$species_pair <- apply(
+  dist_acoustic_long[, c("species1", "species2")],
+  1,
+  function(x) paste(sort(x), collapse = "_")
+)
+
+dist_acoustic_long$individual1  <- factor(dist_acoustic_long$individual1)
+dist_acoustic_long$individual2  <- factor(dist_acoustic_long$individual2)
+dist_acoustic_long$population1  <- factor(dist_acoustic_long$population1)
+dist_acoustic_long$population2  <- factor(dist_acoustic_long$population2)
+dist_acoustic_long$species_pair <- factor(dist_acoustic_long$species_pair)
+
+```
+
+### Pairwise data for the analysis steps
+
+The sympatry models (Step 2) use only heterospecific pairs, while Steps 1 and 3 also need conspecific pairs, so all song pairs are rebuilt here. Objects that are re-created for complex songs (`dist_acoustic_long`, `pcs`) are stored with a song-type suffix.
+
+```{r song type copies simple}
+
+dist_acoustic_long_simple <- dist_acoustic_long
+pcs_simple <- pcs
+
+```
+
+```{r all song pairs simple}
+
+pairs_simple <- all_song_pairs(df = df_clean_simple, pcs = pcs_simple)
+
+occ_simple <- species_occurrence(df_clean_simple)
+
+ps_dat_simple <- population_structure_data(pairs_simple)
+
+```
+
+# Complex songs
+
+## Prepare element level data
+
+```{r read data complex elm}
+
+complex_elm <- read.csv("./data/raw/Sporophila song data_elmt-level plus PCA_complex.csv")
+
+# remove all columns that start with "PC"
+complex_elm <- complex_elm[, !grepl("^PC", names(complex_elm))]
+
+complex_elm$Population <- complex_elm$Lat <- complex_elm$Lon <- NULL
+
+individual_coord <- read.csv("./data/raw/Coordenadas_individuos_complex_songs.csv")
+
+# assign coordinates to each individual
+complex_elm_lat_long <- complex_elm |>
+  left_join(individual_coord, by = "Individual")
+
+```
+
+### Select variables and filter populations
+
+```{r filter data complex elm}
+
+vars <- c(
+  "Q1.Time..s.",
+  "Q3.Time..s.",
+  "Time.5...s.",
+  "Time.95...s.",
+  "Delta.Time..s.",
+  "Dur.90...s.",
+  "IQR.Dur..s.",
+  "Peak.Time..s.",
+  "Center.Time..s.",
+  "Q1.Freq..Hz.",
+  "Q3.Freq..Hz.",
+  "Center.Freq..Hz.",
+  "Freq.5...Hz.",
+  "Freq.95...Hz.",
+  "Delta.Freq..Hz.",
+  "IQR.BW..Hz.",
+  "BW.90...Hz.",
+  "Max.Freq..Hz.",
+  "Peak.Freq..Hz.",
+  "meanfreq",
+  "sd",
+  "freq.median",
+  "freq.Q25",
+  "freq.Q75",
+  "freq.IQR",
+  "time.median",
+  "time.Q25",
+  "time.Q75",
+  "time.IQR",
+  "skew",
+  "kurt",
+  "sp.ent",
+  "time.ent",
+  "entropy",
+  "sfm",
+  "meandom",
+  "mindom",
+  "maxdom",
+  "dfrange",
+  "modindx",
+  "startdom",
+  "enddom",
+  "dfslope",
+  "meanpeakf"
+)
+
+# select variables that are not highly correlated
+complex_elm_dat <- complex_elm_lat_long[, c("Individual", "Lat", "Lon", "species", "Population", "location", "song", vars)]
+
+# remove individuals from underrepresented populations
+complex_elm_dat <- filter(complex_elm_dat, Population != "Pal_ER")
+complex_elm_dat <- filter(complex_elm_dat, Population != "NA")
+
+complex_elm_dat$Individual  <- factor(complex_elm_dat$Individual)
+complex_elm_dat$species     <- factor(complex_elm_dat$species)
+complex_elm_dat$Population  <- factor(complex_elm_dat$Population)
+complex_elm_dat$location    <- factor(complex_elm_dat$location)
+complex_elm_dat$song    <- factor(complex_elm_dat$song)
+
+complex_elm_dat <- complex_elm_dat[complete.cases(complex_elm_dat), ]
+```
+
+### Principal Component Analysis
+
+```{r pca 1 complex elm}
+
+# run PCA on acoustic variables
+pca <- prcomp(
+  complex_elm_dat[, vars],
+  center = TRUE,
+  scale. = TRUE
+)
+
+## Run PCA Inspect variance explained summary(pca)
+
+# plot rotation values by PC
+pca_rot <- as.data.frame(pca$rotation[, 1:5])
+pca_var <- round(summary(pca)$importance[2, ] * 100)
+
+```
+
+We used the first `r n_pcs_broken_stick(pca)` principal components (PCs), selected using the broken-stick criterion, for subsequent analyses, which together explained `r round(cumsum(summary(pca)$importance[2, ])[n_pcs_broken_stick(pca)] * 100, 1)`% of the variance in the data.
+
+```{r pca 2 complex elm}
+
+pca_rot_stck <- stack(pca_rot)
+
+pca_rot_stck$variable <- rownames(pca_rot)
+pca_rot_stck$values[pca_rot_stck$ind == "PC1"] <- pca_rot_stck$values[pca_rot_stck$ind ==
+    "PC1"]
+pca_rot_stck$Sign <- ifelse(pca_rot_stck$values > 0, "Positive", "Negative")
+pca_rot_stck$rotation <- abs(pca_rot_stck$values)
+pca_rot_stck$ind_var <- paste0(pca_rot_stck$ind, " (", sapply(pca_rot_stck$ind,
+    function(x) pca_var[names(pca_var) == x]), "%)")
+
+pca_rot_stck$top_vars <- ave(abs(pca_rot_stck$values), pca_rot_stck$ind,
+    FUN = function(x) {
+
+        # Order decreasing
+        ord <- order(x, decreasing = TRUE)
+        x_sorted <- x[ord]
+
+        # Cumulative proportion
+        cumprop <- cumsum(x_sorted)/sum(x_sorted)
+
+        selected_sorted <- cumprop <= 0.5  # variables with 50% of contribution
+        selected_sorted[which(cumprop >= 0.5)[1]] <- TRUE
+
+        # Return logical vector in original order
+        selected <- logical(length(x))
+        selected[ord] <- selected_sorted
+
+        selected
+    })
+
+# Create facet-specific variable
+pca_rot_stck$var_facet <- paste(pca_rot_stck$ind, pca_rot_stck$variable,
+    sep = "_")
+
+# Reorder within each ind by rotation (largest at top after
+# coord_flip)
+pca_rot_stck <- do.call(rbind, lapply(split(pca_rot_stck, pca_rot_stck$ind),
+    function(df) {
+
+        df$var_facet <- factor(df$var_facet, levels = df$var_facet[order(df$rotation)])
+
+        df
+    }))
+
+# add which variables are stable
+stable_df <- get_stable_loadings(pca, pcs = 5, B = 1000, cum_threshold = 0.5,
+    freq_threshold = 0.5, seed = 123)
+
+pca_rot_stck <- merge(pca_rot_stck, stable_df, by = c("variable",
+    "ind"), all.x = TRUE)
+
+# variables missing from stable_df (e.g. never among the top loadings for
+# that PC) come back as NA from the left join; treat those as "not stable"
+# rather than letting NA propagate into the plot aesthetics below
+pca_rot_stck$stable[is.na(pca_rot_stck$stable)] <- FALSE
+
+# fully opaque bars for stable variables, more transparent for the rest
+# (previously ifelse(stable, 1, 1) - always 1 regardless of stability)
+pca_rot_stck$top_vars <- ifelse(pca_rot_stck$stable, 1, 0.4)
+
+# Build colored labels per row
+
+# escape characters that markdown/HTML treats specially (gridtext, used by
+# element_markdown() below, parses these labels as markdown-with-HTML; an
+# unescaped &, <, > or an odd number of _ / * in a variable name can break
+# that parser and silently fail to render the whole plot)
+escape_markdown <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;", x, fixed = TRUE)
+  x <- gsub(">", "&gt;", x, fixed = TRUE)
+  x <- gsub("_", "&#95;", x, fixed = TRUE)
+  x <- gsub("*", "&#42;", x, fixed = TRUE)
+  x
+}
+
+# Colored labels: black for stable variables, gray for the rest
+# (previously compared stable < 1.1, which is true whether stable is 0 or
+# 1, so every label always took the black branch)
+pca_rot_stck$label_col <- ifelse(
+  pca_rot_stck$stable,
+  paste0("<span style='color:black;'>", escape_markdown(pca_rot_stck$variable), "</span>"),
+  paste0("<span style='color:gray50;'>", escape_markdown(pca_rot_stck$variable), "</span>")
+)
+
+# Named vector for labels
+label_vec <- setNames(pca_rot_stck$label_col, pca_rot_stck$var_facet)
+
+# absolute CI
+pca_rot_stck$ci_low_plot <- abs(pca_rot_stck$ci_lower)
+pca_rot_stck$ci_high_plot <- abs(pca_rot_stck$ci_upper)
+
+# Plot
+# alpha is used directly as a numeric value (scale_alpha_identity) rather
+# than mapped through as.factor()/scale_alpha_manual(); the previous version
+# passed the whole top_vars column as "values" to scale_alpha_manual, which
+# expects one value per factor level, not per row - fragile even before the
+# always-1 bug above was fixed
+ggplot(pca_rot_stck, aes(x = var_facet, y = rotation, fill = Sign,
+    alpha = top_vars)) + geom_col() + coord_flip() + scale_alpha_identity(guide = NULL) +
+    scale_x_discrete(labels = label_vec, name = "Variable") +
+    labs(x = "Rotation") + scale_fill_viridis_d(alpha = 0.7, begin = 0.2,
+    end = 0.8) + facet_wrap(~ind_var, scales = "free_y", nrow = 3) + theme_classic() +
+    theme(axis.text.y = element_markdown())
+
+```
+
+```{r pca scores complex elm}
+
+# bind PCA scores with metadata
+elm_pca_scores <- cbind(
+  pca$x,
+  complex_elm_dat[, c(
+    "Population",
+    "species",
+    "location",
+    "Individual",
+    "song",
+    "Lat",
+    "Lon")]
+)
+
+# select the PCs retained by the broken-stick criterion
+pcs_elm <- grep("^PC", names(elm_pca_scores), value = TRUE)[seq_len(n_pcs_broken_stick(pca))]
+
+elm_pca_scores <- elm_pca_scores |>
+  mutate(
+    across(all_of(pcs_elm), ~ as.numeric(.x)),
+    Lat = as.numeric(Lat),
+    Lon = as.numeric(Lon),
+    species = as.character(species),
+    location = tryCatch(
+      iconv(location, from = "", to = "UTF-8"),
+      error = function(e) location
+    )
+  )
+
+df_clean_complex_elm <- elm_pca_scores |>
+  mutate(
+    across(all_of(pcs_elm), as.numeric),
+    Lat        = as.numeric(Lat),
+    Lon        = as.numeric(Lon),
+    species    = as.character(species),
+    Individual = as.character(Individual),
+    song      = as.character(song)
+  ) |>
+  filter(complete.cases(across(all_of(c(pcs_elm, "Lat", "Lon", "species", "Individual", "song")))))
+
+```
+
+## Song level
+
+### Read and prepare data
+
+```{r read data complex}
+
+complex_songs <- read.csv(
+  "./data/raw/Sporophila song data_song-level plus MCP MST and PCA_complex songs.csv",
+  stringsAsFactors = FALSE
+)
+
+individual_coord <- read.csv(
+  "./data/raw/Coordenadas_individuos_complex_songs.csv",
+  stringsAsFactors = FALSE
+)
+
+# Asignar coordenadas a cada observación según Individual
+complex_songs_lat_long <- complex_songs %>%
+  left_join(individual_coord, by = "Individual")
+
+```
+
+### Select variables and filter populations
+
+-   The song level features used were: peak frequency, number of elements, song duration, song rate, gap duration, frequency range and element diversity (mst)
+
+-   Element duration was excluded as it is an element level features
+
+```{r filter data complex}
+
+# select variables that are not highly correlated
+complex_song_dat <- complex_songs_lat_long[, c("Individual", "Lat", "Lon", "species", "Population", "location", "song",
+                                  "meanpeakf", "num.elms",
+                                  "song.duration", "song.rate", "gap.duration",
+                                  "freq.range.Min5toMax95", "mst")]
+
+# remove individuals from underrepresented populations
+complex_song_dat <- filter(complex_song_dat, Population != "Pal_ER")
+complex_song_dat <- filter(complex_song_dat, Population != "NA")
+
+complex_song_dat$Individual  <- factor(complex_song_dat$Individual)
+complex_song_dat$species     <- factor(complex_song_dat$species)
+complex_song_dat$Population  <- factor(complex_song_dat$Population)
+complex_song_dat$location    <- factor(complex_song_dat$location)
+
+```
+
+### Collinearity among song-level features
+
+Same check as for simple songs (see [Collinearity among song-level features](#collinearity-among-song-level-features) above): pairwise Pearson correlations among the seven song-level features, computed on the complex-song data set. Pairs with |r| ≥ 0.7 would be reduced to a single representative before the feature-based models are fitted.
+
+```{r feature collinearity complex}
+
+collin_complex <- check_feature_collinearity(
+  dat = complex_song_dat,
+  features = song_features,
+  labels = song_feature_labels
+)
+
+```
+
+### Principal Component Analysis
+
+```{r pca 3}
+# run PCA on acoustic variables
+pca <- prcomp(
+  complex_song_dat[, c(
+    "meanpeakf",
+    "num.elms",
+    "song.duration",
+    "song.rate",
+    "gap.duration",
+    "freq.range.Min5toMax95",
+    "mst"
+  )],
+  center = TRUE,
+  scale. = TRUE
+)
+
+## Run PCA Inspect variance explained summary(pca)
+
+# plot rotation values by PC
+pca_rot <- as.data.frame(pca$rotation[, 1:5])
+pca_var <- round(summary(pca)$importance[2, ] * 100)
+
+```
+
+We used the first `r n_pcs_broken_stick(pca)` principal components (PCs), selected using the broken-stick criterion, for subsequent analyses, which together explained `r round(cumsum(summary(pca)$importance[2, ])[n_pcs_broken_stick(pca)] * 100, 1)`% of the variance in the data.
+
+```{r pca 4}
+
+pca_rot_stck <- stack(pca_rot)
+
+pca_rot_stck$variable <- rownames(pca_rot)
+pca_rot_stck$values[pca_rot_stck$ind == "PC1"] <- pca_rot_stck$values[pca_rot_stck$ind ==
+    "PC1"]
+pca_rot_stck$Sign <- ifelse(pca_rot_stck$values > 0, "Positive", "Negative")
+pca_rot_stck$rotation <- abs(pca_rot_stck$values)
+pca_rot_stck$ind_var <- paste0(pca_rot_stck$ind, " (", sapply(pca_rot_stck$ind,
+    function(x) pca_var[names(pca_var) == x]), "%)")
+
+pca_rot_stck$top_vars <- ave(abs(pca_rot_stck$values), pca_rot_stck$ind,
+    FUN = function(x) {
+
+        # Order decreasing
+        ord <- order(x, decreasing = TRUE)
+        x_sorted <- x[ord]
+
+        # Cumulative proportion
+        cumprop <- cumsum(x_sorted)/sum(x_sorted)
+
+        selected_sorted <- cumprop <= 0.5  # variables with 50% of contribution 
+        selected_sorted[which(cumprop >= 0.5)[1]] <- TRUE
+
+        # Return logical vector in original order
+        selected <- logical(length(x))
+        selected[ord] <- selected_sorted
+
+        selected
+    })
+
+# Create facet-specific variable
+pca_rot_stck$var_facet <- paste(pca_rot_stck$ind, pca_rot_stck$variable,
+    sep = "_")
+
+# Reorder within each ind by rotation (largest at top after
+# coord_flip)
+pca_rot_stck <- do.call(rbind, lapply(split(pca_rot_stck, pca_rot_stck$ind),
+    function(df) {
+
+        df$var_facet <- factor(df$var_facet, levels = df$var_facet[order(df$rotation)])
+
+        df
+    }))
+
+# add which variables are stable
+stable_df <- get_stable_loadings(pca, pcs = 5, B = 1000, cum_threshold = 0.5,
+    freq_threshold = 0.5, seed = 123)
+
+pca_rot_stck <- merge(pca_rot_stck, stable_df, by = c("variable",
+    "ind"), all.x = TRUE)
+
+# variables missing from stable_df (e.g. never among the top loadings for
+# that PC) come back as NA from the left join; treat those as "not stable"
+# rather than letting NA propagate into the plot aesthetics below
+pca_rot_stck$stable[is.na(pca_rot_stck$stable)] <- FALSE
+
+# fully opaque bars for stable variables, more transparent for the rest
+# (previously ifelse(stable, 1, 1) - always 1 regardless of stability)
+pca_rot_stck$top_vars <- ifelse(pca_rot_stck$stable, 1, 0.4)
+
+# Build colored labels per row
+
+# escape characters that markdown/HTML treats specially (gridtext, used by
+# element_markdown() below, parses these labels as markdown-with-HTML; an
+# unescaped &, <, > or an odd number of _ / * in a variable name can break
+# that parser and silently fail to render the whole plot)
+escape_markdown <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;", x, fixed = TRUE)
+  x <- gsub(">", "&gt;", x, fixed = TRUE)
+  x <- gsub("_", "&#95;", x, fixed = TRUE)
+  x <- gsub("*", "&#42;", x, fixed = TRUE)
+  x
+}
+
+# Colored labels: black for stable variables, gray for the rest
+# (previously compared stable < 1.1, which is true whether stable is 0 or
+# 1, so every label always took the black branch)
+pca_rot_stck$label_col <- ifelse(
+  pca_rot_stck$stable,
+  paste0("<span style='color:black;'>", escape_markdown(pca_rot_stck$variable), "</span>"),
+  paste0("<span style='color:gray50;'>", escape_markdown(pca_rot_stck$variable), "</span>")
+)
+
+# Named vector for labels
+label_vec <- setNames(pca_rot_stck$label_col, pca_rot_stck$var_facet)
+
+# absolute CI
+pca_rot_stck$ci_low_plot <- abs(pca_rot_stck$ci_lower)
+pca_rot_stck$ci_high_plot <- abs(pca_rot_stck$ci_upper)
+
+# Plot
+# alpha is used directly as a numeric value (scale_alpha_identity) rather
+# than mapped through as.factor()/scale_alpha_manual(); the previous version
+# passed the whole top_vars column as "values" to scale_alpha_manual, which
+# expects one value per factor level, not per row - fragile even before the
+# always-1 bug above was fixed
+ggplot(pca_rot_stck, aes(x = var_facet, y = rotation, fill = Sign,
+    alpha = top_vars)) + geom_col() + coord_flip() + scale_alpha_identity(guide = NULL) +
+    scale_x_discrete(labels = label_vec, name = "Variable") +
+    labs(x = "Rotation") + scale_fill_viridis_d(alpha = 0.7, begin = 0.2,
+    end = 0.8) + facet_wrap(~ind_var, scales = "free_y", nrow = 3) + theme_classic() +
+    theme(axis.text.y = element_markdown())
+
+```
+
+```{r pca scores complex}
+
+# bind PCA scores with metadata
+pca_scores <- cbind(
+  pca$x,
+  complex_song_dat[, c(
+    "Population",
+    "species",
+    "location",
+    "Individual",
+    "song",
+    "Lat",
+    "Lon",
+    "meanpeakf",
+    "num.elms",
+    "song.duration",
+    "song.rate",
+    "gap.duration",
+    "freq.range.Min5toMax95",
+    "mst"
+  )]
+)
+
+# select the PCs retained by the broken-stick criterion
+pcs <- grep("^PC", names(pca_scores), value = TRUE)[seq_len(n_pcs_broken_stick(pca))]
+
+pca_scores <- pca_scores |>
+  mutate(
+    across(all_of(pcs), ~ as.numeric(.x)),
+    Lat = as.numeric(Lat),
+    Lon = as.numeric(Lon),
+    species = as.character(species),
+    location = tryCatch(
+      iconv(location, from = "", to = "UTF-8"),
+      error = function(e) location
+    )
+  )
+
+```
+
+### Acoustic distances
+
+#### Build pairwise distance dataset
+
+```{r song ids complex}
+
+df_clean_complex <- pca_scores |>
+  mutate(
+    across(all_of(pcs), as.numeric),
+    Lat        = as.numeric(Lat),
+    Lon        = as.numeric(Lon),
+    species    = as.character(species),
+    Individual = as.character(Individual),
+    population = as.character(Population),
+    song       = as.character(song)
+  ) |>
+  filter(complete.cases(across(all_of(c(pcs, "Lat", "Lon", "species", "Individual", "song")))))
+
+df_clean_complex$population <- sapply(strsplit(df_clean_complex$population, "_"), "[[", 2)
+
+# table(df_clean_complex$Population, df_clean_complex$species)
+
+# song identity uses the native "song" column carried through from the
+# raw data (unique per recording: sound file + species + vocalization
+# type + song number), rather than being re-derived - unlike the earlier
+# row-order-based reconstruction, this can't silently collapse multiple
+# distinct songs from the same individual into one song ID
+```
+
+#### Convert to long table
+
+```{r scaled acoustic distance matrix complex}
+
+# acoustic distance between songs (Euclidean multivariate, unscaled PCs)
+agg_df_clean_complex_elm <- aggregate(
+ . ~ song, df_clean_complex_elm[, c(pcs_elm, "song")],
+  FUN = mean
+)
+
+dist_acoustic_mat <- as.matrix(dist(
+  df_clean_complex[, pcs],
+  method = "euclidean"
+))
+
+# and for each feature separately (unscaled)
+dist_meanpeakf_mat <- as.matrix(dist(
+  df_clean_complex[, "meanpeakf"],
+  method = "euclidean"
+))
+
+dist_numelms_mat <- as.matrix(dist(
+  df_clean_complex[, "num.elms"],
+  method = "euclidean"
+))
+
+dist_songduration_mat <- as.matrix(dist(
+  df_clean_complex[, "song.duration"],
+  method = "euclidean"
+))
+
+dist_songrate_mat <- as.matrix(dist(
+  df_clean_complex[, "song.rate"],
+  method = "euclidean"
+))
+
+dist_gapduration_mat <- as.matrix(dist(
+  df_clean_complex[, "gap.duration"],
+  method = "euclidean"
+))
+
+dist_freqrange_mat <- as.matrix(dist(
+  df_clean_complex[, "freq.range.Min5toMax95"],
+  method = "euclidean"
+))
+
+dist_mst_mat <- as.matrix(dist(
+  df_clean_complex[, "mst"],
+  method = "euclidean"
+))
+
+dist_elm_mat <- as.matrix(dist(
+  agg_df_clean_complex_elm[, pcs_elm],
+  method = "euclidean"
+))
+
+rownames(dist_acoustic_mat) <- colnames(dist_acoustic_mat) <- df_clean_complex$song
+
+rownames(dist_elm_mat) <- colnames(dist_elm_mat) <- agg_df_clean_complex_elm$song
+
+# use only upper triangle
+idx <- which(upper.tri(dist_acoustic_mat), arr.ind = TRUE)
+
+dist_acoustic_long <- data.frame(
+  id1      = rownames(dist_acoustic_mat)[idx[, 1]],
+  id2      = colnames(dist_acoustic_mat)[idx[, 2]],
+  acoustic_distance = dist_acoustic_mat[idx],
+  meanpeakf_distance = dist_meanpeakf_mat[idx],
+  numelms_distance = dist_numelms_mat[idx],
+  songduration_distance = dist_songduration_mat[idx],
+  songrate_distance = dist_songrate_mat[idx],
+  gapduration_distance = dist_gapduration_mat[idx],
+  freqrange_distance = dist_freqrange_mat[idx],
+  mst_distance = dist_mst_mat[idx]
+)
+
+dist_acoustic_long$elm_pca_distance <- sapply(seq_len(nrow(dist_acoustic_long)), function(i) {
+    dist_elm_mat[rownames(dist_elm_mat) == dist_acoustic_long$id1[i], colnames(dist_elm_mat) == dist_acoustic_long$id2[i]]
+})
+
+# look up species, population, and individual for each song by matching
+# against the native song identifier (mirrors the simple-song approach)
+dist_acoustic_long$species1    <- sapply(dist_acoustic_long$id1, function(x)
+    df_clean_complex$species[df_clean_complex$song == x])
+dist_acoustic_long$population1    <- sapply(dist_acoustic_long$id1, function(x)
+    df_clean_complex$population[df_clean_complex$song == x])
+dist_acoustic_long$individual1    <- sapply(dist_acoustic_long$id1, function(x)
+    df_clean_complex$Individual[df_clean_complex$song == x])
+
+dist_acoustic_long$species2    <- sapply(dist_acoustic_long$id2, function(x)
+    df_clean_complex$species[df_clean_complex$song == x])
+dist_acoustic_long$population2    <- sapply(dist_acoustic_long$id2, function(x)
+    df_clean_complex$population[df_clean_complex$song == x])
+dist_acoustic_long$individual2    <- sapply(dist_acoustic_long$id2, function(x)
+    df_clean_complex$Individual[df_clean_complex$song == x])
+
+# keep only between-species comparisons
+dist_acoustic_long <- dist_acoustic_long[
+  dist_acoustic_long$species1 != dist_acoustic_long$species2, ]
+
+# sympatry flag: 1 if same population, 0 otherwise
+dist_acoustic_long$sympatry <- as.factor(as.integer(
+  dist_acoustic_long$population1 == dist_acoustic_long$population2
+))
+
+# canonical species pair label (sorted alphabetically)
+dist_acoustic_long$species_pair <- apply(
+  dist_acoustic_long[, c("species1", "species2")],
+  1,
+  function(x) paste(sort(x), collapse = "_")
+)
+
+dist_acoustic_long$individual1  <- factor(dist_acoustic_long$individual1)
+dist_acoustic_long$individual2  <- factor(dist_acoustic_long$individual2)
+dist_acoustic_long$population1  <- factor(dist_acoustic_long$population1)
+dist_acoustic_long$population2  <- factor(dist_acoustic_long$population2)
+dist_acoustic_long$species_pair <- factor(dist_acoustic_long$species_pair)
+
+```
+
+### Pairwise data for the analysis steps
+
+The sympatry models (Step 2) use only heterospecific pairs, while Steps 1 and 3 also need conspecific pairs, so all song pairs are rebuilt here. Objects that are re-created for complex songs (`dist_acoustic_long`, `pcs`) are stored with a song-type suffix.
+
+```{r song type copies complex}
+
+dist_acoustic_long_complex <- dist_acoustic_long
+pcs_complex <- pcs
+
+```
+
+```{r all song pairs complex}
+
+pairs_complex <- all_song_pairs(df = df_clean_complex, pcs = pcs_complex)
+
+occ_complex <- species_occurrence(df_clean_complex)
+
+ps_dat_complex <- population_structure_data(pairs_complex)
+
+```
+
+# Save data for the analysis steps
+
+The pairwise data sets used by each analysis step are saved here, so each step report can be rendered on its own:
+
+-   `dist_acoustic_long`: heterospecific song pairs with PCA-based and per-feature acoustic distances (Step 2)
+-   `ps_dat`: conspecific song pairs from different individuals (Step 1)
+-   `pairs`: heterospecific song pairs with PCA-based acoustic distance and geographic distance (Step 3)
+-   `occ`: populations (localities) in which each species was sampled (Steps 1 and 3)
+
+```{r save step inputs}
+
+for (song in c("simple", "complex")) {
+
+  all_pairs <- get(paste0("pairs_", song))
+
+  saveRDS(
+    list(
+      dist_acoustic_long = get(paste0("dist_acoustic_long_", song)),
+      ps_dat = get(paste0("ps_dat_", song)),
+      pairs = all_pairs[all_pairs$species1 != all_pairs$species2, ],
+      occ = get(paste0("occ_", song))
+    ),
+    file = paste0("./data/processed/step_inputs_", song, ".rds"),
+    compress = "xz"
+  )
+}
+
+```
+
+<!-- add packages used, system details and versions  -->
+
+::: {.callout-note collapse="true"}
+## Session information {.unnumbered .unlisted}
+
+```{r session info}
+#| echo: false
+
+# if devtools is installed use devtools::session_info()
+if (requireNamespace("devtools", quietly = TRUE)) {
+  devtools::session_info()
+} else {
+  sessionInfo()
+}
+```
+:::

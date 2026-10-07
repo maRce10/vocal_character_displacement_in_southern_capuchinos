@@ -1,0 +1,503 @@
+---
+title: "Step 1: Population structure within species"
+subtitle: Vocal character displacement in southern capuchinos
+author: <a href="https://marce10.github.io/">Marcelo Araya-Salas</a>
+date: "`r Sys.Date()`"
+toc: true
+toc-depth: 4
+toc-location: left
+number-sections: true
+highlight-style: pygments
+format:
+  html:
+    df-print: kable
+    code-fold: true
+    code-tools: true
+    css: qmd.css
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r set root directory}
+#| eval: true
+#| echo: false
+#| warning: false
+
+# install knitr package if not installed
+if (!requireNamespace("knitr", quietly = TRUE)) {
+  install.packages("knitr")
+}
+
+# set working directory
+knitr::opts_knit$set(root.dir = "..")
+```
+
+```{r add link to github repo}
+#| eval: true
+#| output: asis
+#| echo: false
+
+# print link to github repo if any
+if (file.exists("./.git/config")) {
+  config <- readLines("./.git/config")
+  url <- grep("url", config, value = TRUE)
+  url <- gsub("\\turl = |.git$", "", url)
+  if (length(url) > 0)
+    if (nchar(url) > 1)
+      cat("\nSource code and data found at [", url, "](", url, ")", sep = "")
+}
+```
+
+```{r setup style}
+#| message: false
+#| warning: false
+
+# options to customize chunk outputs
+knitr::opts_chunk$set(
+  message = FALSE
+)
+```
+
+<!-- skyblue box -->
+
+::: {.alert .alert-info}
+# Purpose {.unnumbered .unlisted}
+
+-   Evaluate how much each species' song varies across its range
+-   Test whether songs are more similar within than between populations, and whether acoustic distance increases with geographic distance (isolation by distance)
+:::
+
+Do songs vary across each species' range, and is that variation organized by population? Here we compare songs of different individuals of the same species recorded in the same population with those recorded in different populations. If songs are population-structured, within-population pairs should be more similar (smaller acoustic distance) than between-population pairs. This also shows that there is local variation on which sympatry could act (Step 3).
+
+Acoustic distance is the same PCA-based Euclidean distance used in the sympatry models. Pairs of songs from the same individual are excluded.
+
+# Load packages and custom functions {.unnumbered .unlisted}
+
+```{r load packages}
+#| warning: false
+
+# install knitr package if not installed
+if (!requireNamespace("sketchy", quietly = TRUE)) {
+  install.packages("sketchy")
+}
+
+packages <- c(
+  "knitr",
+  "dplyr",
+  "tidyverse",
+  "vegan",
+  "ecodist",
+  "brms",
+  github = "maRce10/brmsish",
+  "kableExtra",
+  "ggplot2",
+  "ggtext",
+  "ggh4x",
+  github = "stan-dev/cmdstanr"
+)
+
+# install/load packages
+sketchy::load_packages(packages = packages)
+
+options(knitr.kable.NA = '', brms.file_refit = "never")
+
+# set theme globally
+theme_set(theme_classic(base_size = 20))
+
+# custom functions (shared by all reports)
+source("./scripts/functions.R")
+
+```
+
+# Load data {.unnumbered .unlisted}
+
+Pairwise data sets created in [Data preparation](0_data_preparation.qmd).
+
+```{r load step inputs}
+
+step_inputs_simple <- readRDS("./data/processed/step_inputs_simple.rds")
+ps_dat_simple <- step_inputs_simple$ps_dat
+occ_simple <- step_inputs_simple$occ
+
+step_inputs_complex <- readRDS("./data/processed/step_inputs_complex.rds")
+ps_dat_complex <- step_inputs_complex$ps_dat
+occ_complex <- step_inputs_complex$occ
+
+```
+
+# Simple songs
+
+Range-wide variation by species (`mean_within` and `mean_between` are mean acoustic distances among songs of different individuals within and between populations; the ratio is > 1 when songs are population-structured):
+
+```{r population structure summary simple}
+
+print(population_structure_summary(ps_dat_simple))
+
+```
+
+Species sampled at a single locality only contribute within-population variation, so they are described above but not included in the models below.
+
+```{r population structure plot simple}
+#| fig-height: 5
+
+ggplot(ps_dat_simple, aes(x = same_population, y = acoustic_distance, fill = same_population)) +
+  geom_violin(alpha = 0.6, color = NA) +
+  geom_boxplot(width = 0.15, outlier.shape = NA, fill = "white") +
+  facet_wrap(~ species, nrow = 1) +
+  scale_x_discrete(labels = c("0" = "Between\npopulations", "1" = "Within\npopulation")) +
+  scale_fill_viridis_d(option = "mako", begin = 0.3, end = 0.8, guide = "none") +
+  labs(x = NULL, y = "Acoustic distance")
+
+```
+
+## Model: within vs. between populations
+
+$$
+\begin{split}
+\text{acoustic distance} &\sim \text{species} + \text{species} : \text{same population} \\
+&\quad + (1 \mid \text{mm(population}_1,\text{population}_2)) \\
+&\quad + (1 \mid \text{mm(individual}_1,\text{individual}_2))
+\end{split}
+$$
+
+-   Only conspecific pairs from species sampled in more than one population.
+-   `species:same_population1` is the species-specific difference in acoustic distance between within- and between-population pairs. Negative values mean songs are more similar within populations.
+-   Species enter as fixed effects because only two species have more than one population. The intercept is the baseline (between-population) distance of the reference species and `species` is the baseline difference of the other species. This parameterization keeps the regularizing prior on the effects and the baseline difference only, not on species means.
+-   Multi-membership random effects for population and individual, as in the sympatry models.
+-   The response is standardized within the model dataset (both species pooled), so effects are in SD units. Regularizing priors as in the trait-level sympatry models: normal(0, 1) for the intercept, normal(0, 0.5) for fixed effects, exponential(2) for random-effect SDs (including the multi-membership terms) and exponential(1) for the residual SD.
+
+```{r population structure model simple}
+
+ps_model_dat_simple <- ps_dat_simple[
+  ps_dat_simple$species %in% names(occ_simple)[lengths(occ_simple) > 1], ]
+ps_model_dat_simple$species <- droplevels(ps_model_dat_simple$species)
+ps_model_dat_simple$acoustic_distance_sc <- as.numeric(scale(ps_model_dat_simple$acoustic_distance))
+
+population_structure_model_simple <- brm(
+  acoustic_distance_sc ~ species + species:same_population +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = ps_model_dat_simple,
+  family = gaussian(),
+  prior = priors_ws,
+  cores = 4,
+  chains = 4,
+  iter = 10000,
+  backend = "cmdstanr",
+  threads = threading(8),
+  control = list(adapt_delta = 0.95, max_treedepth = 15),
+  file = "./data/processed/fits/population_structure_simple_fit"
+)
+
+```
+
+Prior predictive check (priors only, likelihood ignored; the observed standardized distances should fall comfortably within the range the priors generate):
+
+```{r prior predictive check population structure simple}
+#| fig-height: 4
+
+prior_only_population_structure_simple <- brm(
+  acoustic_distance_sc ~ species + species:same_population +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = ps_model_dat_simple,
+  family = gaussian(),
+  prior = priors_ws,
+  sample_prior = "only",
+  chains = 2,
+  iter = 2000,
+  cores = 2,
+  seed = 123,
+  backend = "cmdstanr",
+  file = "./data/processed/fits/prior_only_population_structure_simple"
+)
+
+prior_check_plot(prior_only_population_structure_simple,
+                 "Prior predictive check (simple songs, population structure model)")
+
+```
+
+```{r population structure summary model simple}
+#| results: "asis"
+
+extended_summary(
+  population_structure_model_simple,
+  highlight = TRUE,
+  trace.palette = viridis::mako,
+  remove.intercepts = TRUE,
+  print.name = FALSE
+)
+
+```
+
+## Model: isolation by distance among populations
+
+Does acoustic distance between populations increase with geographic distance? We test this only on between-population pairs. Within populations, geographic distance is close to zero and almost perfectly confounded with the same-population term above.
+
+$$
+\begin{split}
+\text{acoustic distance} &\sim \text{species} + \text{species} : \text{geographic distance} \\
+&\quad + (1 \mid \text{mm(population}_1,\text{population}_2)) \\
+&\quad + (1 \mid \text{mm(individual}_1,\text{individual}_2))
+\end{split}
+$$
+
+Acoustic distance and geographic distance are both standardized within this subset, with the same regularizing priors. Note that the number of population pairs is very small (3 for a species with 3 populations, 6 for one with 4), so the slope is informed by very few independent contrasts and should be read as descriptive.
+
+```{r isolation by distance model simple}
+
+ibd_dat_simple <- ps_model_dat_simple[ps_model_dat_simple$same_population == "0", ]
+ibd_dat_simple$acoustic_distance_sc <- as.numeric(scale(ibd_dat_simple$acoustic_distance))
+ibd_dat_simple$geo_distance_sc <- as.numeric(scale(ibd_dat_simple$geo_distance))
+
+ibd_model_simple <- brm(
+  acoustic_distance_sc ~ species + species:geo_distance_sc +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = ibd_dat_simple,
+  family = gaussian(),
+  prior = priors_ws,
+  cores = 4,
+  chains = 4,
+  iter = 10000,
+  backend = "cmdstanr",
+  threads = threading(8),
+  control = list(adapt_delta = 0.95, max_treedepth = 15),
+  file = "./data/processed/fits/isolation_by_distance_simple_fit"
+)
+
+```
+
+```{r prior predictive check isolation by distance simple}
+#| fig-height: 4
+
+prior_only_isolation_by_distance_simple <- brm(
+  acoustic_distance_sc ~ species + species:geo_distance_sc +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = ibd_dat_simple,
+  family = gaussian(),
+  prior = priors_ws,
+  sample_prior = "only",
+  chains = 2,
+  iter = 2000,
+  cores = 2,
+  seed = 123,
+  backend = "cmdstanr",
+  file = "./data/processed/fits/prior_only_isolation_by_distance_simple"
+)
+
+prior_check_plot(prior_only_isolation_by_distance_simple,
+                 "Prior predictive check (simple songs, isolation by distance model)")
+
+```
+
+```{r isolation by distance summary simple}
+#| results: "asis"
+
+extended_summary(
+  ibd_model_simple,
+  highlight = TRUE,
+  trace.palette = viridis::mako,
+  remove.intercepts = TRUE,
+  print.name = FALSE
+)
+
+```
+
+# Complex songs
+
+Range-wide variation by species (`mean_within` and `mean_between` are mean acoustic distances among songs of different individuals within and between populations; the ratio is > 1 when songs are population-structured):
+
+```{r population structure summary complex}
+
+print(population_structure_summary(ps_dat_complex))
+
+```
+
+Species sampled at a single locality only contribute within-population variation, so they are described above but not included in the models below.
+
+```{r population structure plot complex}
+#| fig-height: 5
+
+ggplot(ps_dat_complex, aes(x = same_population, y = acoustic_distance, fill = same_population)) +
+  geom_violin(alpha = 0.6, color = NA) +
+  geom_boxplot(width = 0.15, outlier.shape = NA, fill = "white") +
+  facet_wrap(~ species, nrow = 1) +
+  scale_x_discrete(labels = c("0" = "Between\npopulations", "1" = "Within\npopulation")) +
+  scale_fill_viridis_d(option = "mako", begin = 0.3, end = 0.8, guide = "none") +
+  labs(x = NULL, y = "Acoustic distance")
+
+```
+
+## Model: within vs. between populations
+
+$$
+\begin{split}
+\text{acoustic distance} &\sim \text{species} + \text{species} : \text{same population} \\
+&\quad + (1 \mid \text{mm(population}_1,\text{population}_2)) \\
+&\quad + (1 \mid \text{mm(individual}_1,\text{individual}_2))
+\end{split}
+$$
+
+-   Only conspecific pairs from species sampled in more than one population.
+-   `species:same_population1` is the species-specific difference in acoustic distance between within- and between-population pairs. Negative values mean songs are more similar within populations.
+-   Species enter as fixed effects because only two species have more than one population. The intercept is the baseline (between-population) distance of the reference species and `species` is the baseline difference of the other species. This parameterization keeps the regularizing prior on the effects and the baseline difference only, not on species means.
+-   Multi-membership random effects for population and individual, as in the sympatry models.
+-   The response is standardized within the model dataset (both species pooled), so effects are in SD units. Regularizing priors as in the trait-level sympatry models: normal(0, 1) for the intercept, normal(0, 0.5) for fixed effects, exponential(2) for random-effect SDs (including the multi-membership terms) and exponential(1) for the residual SD.
+
+```{r population structure model complex}
+
+ps_model_dat_complex <- ps_dat_complex[
+  ps_dat_complex$species %in% names(occ_complex)[lengths(occ_complex) > 1], ]
+ps_model_dat_complex$species <- droplevels(ps_model_dat_complex$species)
+ps_model_dat_complex$acoustic_distance_sc <- as.numeric(scale(ps_model_dat_complex$acoustic_distance))
+
+population_structure_model_complex <- brm(
+  acoustic_distance_sc ~ species + species:same_population +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = ps_model_dat_complex,
+  family = gaussian(),
+  prior = priors_ws,
+  cores = 4,
+  chains = 4,
+  iter = 10000,
+  backend = "cmdstanr",
+  threads = threading(8),
+  control = list(adapt_delta = 0.95, max_treedepth = 15),
+  file = "./data/processed/fits/population_structure_complex_fit"
+)
+
+```
+
+Prior predictive check (priors only, likelihood ignored; the observed standardized distances should fall comfortably within the range the priors generate):
+
+```{r prior predictive check population structure complex}
+#| fig-height: 4
+
+prior_only_population_structure_complex <- brm(
+  acoustic_distance_sc ~ species + species:same_population +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = ps_model_dat_complex,
+  family = gaussian(),
+  prior = priors_ws,
+  sample_prior = "only",
+  chains = 2,
+  iter = 2000,
+  cores = 2,
+  seed = 123,
+  backend = "cmdstanr",
+  file = "./data/processed/fits/prior_only_population_structure_complex"
+)
+
+prior_check_plot(prior_only_population_structure_complex,
+                 "Prior predictive check (complex songs, population structure model)")
+
+```
+
+```{r population structure summary model complex}
+#| results: "asis"
+
+extended_summary(
+  population_structure_model_complex,
+  highlight = TRUE,
+  trace.palette = viridis::mako,
+  remove.intercepts = TRUE,
+  print.name = FALSE
+)
+
+```
+
+## Model: isolation by distance among populations
+
+Does acoustic distance between populations increase with geographic distance? We test this only on between-population pairs. Within populations, geographic distance is close to zero and almost perfectly confounded with the same-population term above.
+
+$$
+\begin{split}
+\text{acoustic distance} &\sim \text{species} + \text{species} : \text{geographic distance} \\
+&\quad + (1 \mid \text{mm(population}_1,\text{population}_2)) \\
+&\quad + (1 \mid \text{mm(individual}_1,\text{individual}_2))
+\end{split}
+$$
+
+Acoustic distance and geographic distance are both standardized within this subset, with the same regularizing priors. Note that the number of population pairs is very small (3 for a species with 3 populations, 6 for one with 4), so the slope is informed by very few independent contrasts and should be read as descriptive.
+
+```{r isolation by distance model complex}
+
+ibd_dat_complex <- ps_model_dat_complex[ps_model_dat_complex$same_population == "0", ]
+ibd_dat_complex$acoustic_distance_sc <- as.numeric(scale(ibd_dat_complex$acoustic_distance))
+ibd_dat_complex$geo_distance_sc <- as.numeric(scale(ibd_dat_complex$geo_distance))
+
+ibd_model_complex <- brm(
+  acoustic_distance_sc ~ species + species:geo_distance_sc +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = ibd_dat_complex,
+  family = gaussian(),
+  prior = priors_ws,
+  cores = 4,
+  chains = 4,
+  iter = 10000,
+  backend = "cmdstanr",
+  threads = threading(8),
+  control = list(adapt_delta = 0.95, max_treedepth = 15),
+  file = "./data/processed/fits/isolation_by_distance_complex_fit"
+)
+
+```
+
+```{r prior predictive check isolation by distance complex}
+#| fig-height: 4
+
+prior_only_isolation_by_distance_complex <- brm(
+  acoustic_distance_sc ~ species + species:geo_distance_sc +
+    (1 | mm(pop1, pop2)) +
+    (1 | mm(individual1, individual2)),
+  data = ibd_dat_complex,
+  family = gaussian(),
+  prior = priors_ws,
+  sample_prior = "only",
+  chains = 2,
+  iter = 2000,
+  cores = 2,
+  seed = 123,
+  backend = "cmdstanr",
+  file = "./data/processed/fits/prior_only_isolation_by_distance_complex"
+)
+
+prior_check_plot(prior_only_isolation_by_distance_complex,
+                 "Prior predictive check (complex songs, isolation by distance model)")
+
+```
+
+```{r isolation by distance summary complex}
+#| results: "asis"
+
+extended_summary(
+  ibd_model_complex,
+  highlight = TRUE,
+  trace.palette = viridis::mako,
+  remove.intercepts = TRUE,
+  print.name = FALSE
+)
+
+```
+
+<!-- add packages used, system details and versions  -->
+
+::: {.callout-note collapse="true"}
+## Session information {.unnumbered .unlisted}
+
+```{r session info}
+#| echo: false
+
+# if devtools is installed use devtools::session_info()
+if (requireNamespace("devtools", quietly = TRUE)) {
+  devtools::session_info()
+} else {
+  sessionInfo()
+}
+```
+:::

@@ -1,0 +1,26 @@
+---
+title: "Vocal character displacement in southern capuchinos"
+subtitle: "Code and data"
+author: "Marcelo Araya-Salas"
+toc: false
+---
+
+This site contains the analyses of vocal character displacement in southern capuchino seedeaters (*Sporophila* spp.). We evaluate whether songs of different species are more or less divergent where they co-occur, how much each species' song varies across its range, and which species' populations shifted where they live with congeners.
+
+## Analysis reports
+
+The analysis starts with a [data preparation](scripts/0_data_preparation.qmd) report (PCA and pairwise acoustic distances for simple and complex songs), followed by three analysis steps, each run separately for simple and complex songs:
+
+1.  **[Population structure within species](scripts/1_population_structure.qmd).** Are songs of individuals from the same population more similar than songs from different populations, beyond isolation by distance? This shows there is local variation on which sympatry could act. It can only be tested for species sampled in more than one population (hypoxantha and ruficollis); the other species are described.
+2.  **[Sympatry and heterospecific distances](scripts/2_sympatry_and_heterospecific_distances.qmd).** Are heterospecific songs more or less different in sympatry than in allopatry (the sympatry-only models)? A dyadic comparison cannot show which species changed.
+3.  **[Population shifts](scripts/3_population_shifts.qmd).** Within a focal species, are populations that co-occur with a congener shifted towards (convergence) or away from (divergence) that congener's song, compared with conspecific populations that do not co-occur with it?
+
+Step 3 can only be tested for hypoxantha and ruficollis relative to each other, because iberaensis and palustris were recorded at a single locality. It rests on very few populations per contrast (2 vs. 2 for ruficollis, 1 vs. 2 for hypoxantha), and single-site contrasts are confounded with anything else particular to that locality. It is therefore presented as supporting evidence, and the size of any co-occurrence shift is compared with ordinary between-population differences.
+
+## Main results
+
+*To be written after the models are fitted.*
+
+## Reproducibility
+
+All code and data are available in the [GitHub repository](https://github.com/maRce10/vocal-character-displacement-capuchinos). See the repository README for the folder structure and for files not hosted on GitHub.
