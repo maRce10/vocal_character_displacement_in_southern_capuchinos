@@ -250,6 +250,7 @@ window.Quarto = {
 </header>
 
 
+<p>Source code and data found at <a href="https://github.com/maRce10/vocal_character_displacement_in_southern_capuchinos">https://github.com/maRce10/vocal_character_displacement_in_southern_capuchinos</a></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -677,6 +678,24 @@ window.Quarto = {
 </div>
 </div>
 </div>
+<section id="summary" class="level2 unnumbered unlisted alert alert-info">
+<h2 class="unnumbered unlisted anchored" data-anchor-id="summary">Summary</h2>
+<section id="model-summary" class="level3 unnumbered unlisted">
+<h3 class="unnumbered unlisted anchored" data-anchor-id="model-summary">Model summary</h3>
+<ul>
+<li>Only two of the twelve focal-congener combinations have enough data to test (populations with and without the congener, plus congener reference populations elsewhere): <em>Ruficollis</em> vs.&nbsp;<em>Hypoxantha</em> and the reverse, <em>Hypoxantha</em> vs.&nbsp;<em>Ruficollis</em>. Neither co-occurrence effect is credible (<em>Ruficollis</em> vs.&nbsp;<em>Hypoxantha</em>: -0.228 SD, 95% CI [-0.778, 0.405]; <em>Hypoxantha</em> vs.&nbsp;<em>Ruficollis</em>: 0.004 SD, 95% CI [-0.537, 0.554]).</li>
+<li>The <em>Hypoxantha</em> vs.&nbsp;<em>Ruficollis</em> model shows a convergence warning (Rhat = 1.094) and a high divergent-transition rate (3128/20,000 draws, 15.6%), so its null result should be treated as inconclusive rather than as evidence of no shift. The <em>Ruficollis</em> vs.&nbsp;<em>Hypoxantha</em> model converged cleanly (Rhat = 1.003, 146/20,000 divergent, 0.7%) and its null result is more trustworthy.</li>
+<li>Expressed relative to the typical between-population difference for the focal species, both estimates are extremely imprecise (<em>Ruficollis</em> vs.&nbsp;<em>Hypoxantha</em>: -0.780, 95% CI [-5.768, 0.874]; <em>Hypoxantha</em> vs.&nbsp;<em>Ruficollis</em>: 0.005, 95% CI [-6.764, 4.826]) — the data cannot rule out a shift as large as several ordinary population differences in either direction.</li>
+</ul>
+</section>
+<section id="interpretation" class="level3 unnumbered unlisted">
+<h3 class="unnumbered unlisted anchored" data-anchor-id="interpretation">Interpretation</h3>
+<ul>
+<li>With only one species pair testable and very few populations per comparison, Step 3 has essentially no statistical power for simple songs: the absence of a credible shift reflects data scarcity more than evidence against population-level convergence or divergence.</li>
+<li>The point estimates are at least directionally consistent with the Step 2 sympatry pattern: <em>Ruficollis</em> populations that co-occur with <em>Hypoxantha</em> trend towards acoustic convergence (negative shift) rather than divergence, the opposite of what simple-song character displacement in Step 2 would predict if it operated through this specific species’ shift; given the width of the interval, however, this is only a weak hint and not a finding.</li>
+</ul>
+</section>
+</section>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -772,10 +791,10 @@ acoustic_distance_sc ~ cooccur + (1 | pop1) + (1 | pop2) + (1 | individual1) + (
 5000
 </td>
 <td style="text-align:left;">
-<span style="font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">1180 (0.059%)</span>
+<span style=" font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">1180 (0.059%)</span>
 </td>
 <td style="text-align:left;">
-<span>0</span>
+<span style="     ">0</span>
 </td>
 <td style="text-align:right;">
 11968.08
@@ -829,7 +848,7 @@ b_cooccur1
 0.405
 </td>
 <td style="text-align:left;">
-<span>1.003</span>
+<span style="     ">1.003</span>
 </td>
 <td style="text-align:right;">
 11968.08
@@ -908,10 +927,10 @@ acoustic_distance_sc ~ cooccur + (1 | pop1) + (1 | pop2) + (1 | individual1) + (
 5000
 </td>
 <td style="text-align:left;">
-<span style="font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">3128 (0.16%)</span>
+<span style=" font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">3128 (0.16%)</span>
 </td>
 <td style="text-align:left;">
-<span style="font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">1</span>
+<span style=" font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">1</span>
 </td>
 <td style="text-align:right;">
 12910.92
@@ -965,7 +984,7 @@ b_cooccur1
 0.554
 </td>
 <td style="text-align:left;">
-<span style="font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">1.094</span>
+<span style=" font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">1.094</span>
 </td>
 <td style="text-align:right;">
 12910.92
@@ -1332,6 +1351,24 @@ b_cooccur1
 </div>
 </div>
 </div>
+<section id="summary-1" class="level2 unnumbered unlisted alert alert-info">
+<h2 class="unnumbered unlisted anchored" data-anchor-id="summary-1">Summary</h2>
+<section id="model-summary-1" class="level3 unnumbered unlisted">
+<h3 class="unnumbered unlisted anchored" data-anchor-id="model-summary-1">Model summary</h3>
+<ul>
+<li>As for simple songs, only <em>Ruficollis</em> vs.&nbsp;<em>Hypoxantha</em> and <em>Hypoxantha</em> vs.&nbsp;<em>Ruficollis</em> are testable. Neither co-occurrence effect is credible (<em>Ruficollis</em> vs.&nbsp;<em>Hypoxantha</em>: -0.346 SD, 95% CI [-0.980, 0.516]; <em>Hypoxantha</em> vs.&nbsp;<em>Ruficollis</em>: 0.052 SD, 95% CI [-0.537, 0.576]), and both models converged cleanly (Rhat = 1, divergent transitions below 1% in both).</li>
+<li>Relative to the typical between-population difference, both estimates are again extremely imprecise (<em>Ruficollis</em> vs.&nbsp;<em>Hypoxantha</em>: -1.450, 95% CI [-51.529, 0.908]; <em>Hypoxantha</em> vs.&nbsp;<em>Ruficollis</em>: 0.379, 95% CI [-4.070, 18.238]).</li>
+</ul>
+</section>
+<section id="interpretation-1" class="level3 unnumbered unlisted">
+<h3 class="unnumbered unlisted anchored" data-anchor-id="interpretation-1">Interpretation</h3>
+<ul>
+<li>As with simple songs, Step 3 provides no credible evidence of population-level convergence or divergence for complex songs, but this is a statement about statistical power (one testable species pair, few populations) rather than about biology.</li>
+<li>Unlike the simple-song <em>Hypoxantha</em> vs.&nbsp;<em>Ruficollis</em> model, both complex-song models converged cleanly, so these null results are not undermined by sampling problems — they are genuinely uninformative given the data available, not masked by a convergence failure.</li>
+<li>Taken together with Step 2, the strongest and best-supported evidence for sound-based character displacement in this system remains the heterospecific sympatric-vs-allopatric contrast (Step 2), not the population-shift framing used here, which is limited by how few species pairs have the co-occurrence structure needed to test it.</li>
+</ul>
+</section>
+</section>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1427,10 +1464,10 @@ acoustic_distance_sc ~ cooccur + (1 | pop1) + (1 | pop2) + (1 | individual1) + (
 5000
 </td>
 <td style="text-align:left;">
-<span style="font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">146 (0.0073%)</span>
+<span style=" font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">146 (0.0073%)</span>
 </td>
 <td style="text-align:left;">
-<span>0</span>
+<span style="     ">0</span>
 </td>
 <td style="text-align:right;">
 10735.11
@@ -1484,7 +1521,7 @@ b_cooccur1
 0.516
 </td>
 <td style="text-align:left;">
-<span>1</span>
+<span style="     ">1</span>
 </td>
 <td style="text-align:right;">
 10735.11
@@ -1563,10 +1600,10 @@ acoustic_distance_sc ~ cooccur + (1 | pop1) + (1 | pop2) + (1 | individual1) + (
 5000
 </td>
 <td style="text-align:left;">
-<span style="font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">84 (0.0042%)</span>
+<span style=" font-weight: bold;    color: white !important;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: red !important;font-size: 12px;">84 (0.0042%)</span>
 </td>
 <td style="text-align:left;">
-<span>0</span>
+<span style="     ">0</span>
 </td>
 <td style="text-align:right;">
 10762.19
@@ -1620,7 +1657,7 @@ b_cooccur1
 0.576
 </td>
 <td style="text-align:left;">
-<span>1</span>
+<span style="     ">1</span>
 </td>
 <td style="text-align:right;">
 10762.19
@@ -1653,8 +1690,8 @@ b_cooccur1
 <div class="cell-output cell-output-stdout">
 <pre><code>─ Session info ───────────────────────────────────────────────────────────────
  setting  value
- version  R version 4.6.1 (2026-06-24)
- os       Ubuntu 22.04.5 LTS
+ version  R version 4.5.2 (2025-10-31)
+ os       Ubuntu 22.04.4 LTS
  system   x86_64, linux-gnu
  ui       X11
  language (EN)
@@ -1662,129 +1699,137 @@ b_cooccur1
  ctype    en_US.UTF-8
  tz       America/Costa_Rica
  date     2026-10-07
- pandoc   3.8.3 @ /usr/lib/rstudio/resources/app/bin/quarto/bin/tools/x86_64/ (via rmarkdown)
- quarto   1.7.31 @ /usr/local/bin/quarto
+ pandoc   2.9.2.1 @ /usr/bin/ (via rmarkdown)
+ quarto   NA
 
 ─ Packages ───────────────────────────────────────────────────────────────────
- package        * version    date (UTC) lib source
- abind            1.4-8      2024-09-12 [2] CRAN (R 4.6.1)
- ape              5.8-1      2024-12-16 [2] CRAN (R 4.6.1)
- arrayhelpers     1.1-2      2026-07-24 [2] CRAN (R 4.6.1)
- backports        1.5.1      2026-04-03 [2] CRAN (R 4.6.1)
- bayesplot        1.15.0     2025-12-12 [2] CRAN (R 4.6.1)
- bridgesampling   1.2-1      2025-11-19 [2] CRAN (R 4.6.1)
- brms           * 2.23.0     2025-09-09 [2] CRAN (R 4.6.1)
- brmsish        * 1.0.0      2026-07-14 [2] Github (maRce10/brmsish@81ab826)
- Brobdingnag      1.2-9      2022-10-19 [2] CRAN (R 4.6.1)
- cachem           1.1.0      2024-05-16 [2] CRAN (R 4.6.1)
- checkmate        2.3.4      2026-02-03 [2] CRAN (R 4.6.1)
- cli              3.6.6      2026-04-09 [1] CRAN (R 4.6.1)
- cluster          2.1.8.3    2026-07-30 [1] CRAN (R 4.6.1)
- cmdstanr       * 0.9.0.9001 2026-07-14 [2] Github (stan-dev/cmdstanr@2763c0f)
- coda             0.19-4.1   2024-01-31 [2] CRAN (R 4.6.1)
- codetools        0.2-20     2024-03-31 [2] CRAN (R 4.6.1)
- cowplot          1.2.0      2025-07-07 [2] CRAN (R 4.6.1)
- crayon           1.5.3      2024-06-20 [2] CRAN (R 4.6.1)
- curl             8.0.0      2026-08-25 [1] CRAN (R 4.6.1)
- devtools         2.5.2      2026-04-30 [2] CRAN (R 4.6.1)
- digest           0.6.39     2025-11-19 [2] CRAN (R 4.6.1)
- distributional   0.8.1      2026-06-27 [2] CRAN (R 4.6.1)
- dplyr          * 1.2.1      2026-04-03 [2] CRAN (R 4.6.1)
- ecodist        * 2.1.3      2023-10-30 [2] CRAN (R 4.6.1)
- ellipsis         0.3.3      2026-04-04 [2] CRAN (R 4.6.1)
- emmeans          2.0.4      2026-07-15 [2] CRAN (R 4.6.1)
- estimability     2.0.0      2026-06-26 [2] CRAN (R 4.6.1)
- evaluate         1.0.5      2025-08-27 [1] CRAN (R 4.6.1)
- farver           2.1.2      2024-05-13 [2] CRAN (R 4.6.1)
- fastmap          1.2.0      2024-05-15 [2] CRAN (R 4.6.1)
- forcats        * 1.0.1      2025-09-25 [2] CRAN (R 4.6.1)
- fs               2.1.0      2026-04-18 [2] CRAN (R 4.6.1)
- generics         0.1.4      2025-05-09 [1] CRAN (R 4.6.1)
- ggdist           3.3.3      2025-04-23 [2] CRAN (R 4.6.1)
- ggh4x          * 0.3.1      2025-05-30 [1] CRAN (R 4.6.1)
- ggplot2        * 4.0.3      2026-04-22 [2] CRAN (R 4.6.1)
- ggtext         * 0.1.2      2022-09-16 [2] CRAN (R 4.6.1)
- glue             1.8.1      2026-04-17 [1] CRAN (R 4.6.1)
- gridExtra        2.3.1      2026-06-25 [2] CRAN (R 4.6.1)
- gridtext         0.1.6      2026-02-19 [2] CRAN (R 4.6.1)
- gtable           0.3.6      2024-10-25 [2] CRAN (R 4.6.1)
- hms              1.1.4      2025-10-17 [2] CRAN (R 4.6.1)
- htmltools        0.5.9      2025-12-04 [2] CRAN (R 4.6.1)
- htmlwidgets      1.6.4      2023-12-06 [2] CRAN (R 4.6.1)
- igraph           2.3.3      2026-06-26 [2] CRAN (R 4.6.1)
- inline           0.3.21     2025-01-09 [2] CRAN (R 4.6.1)
- jsonlite         2.0.0      2025-03-27 [1] CRAN (R 4.6.1)
- kableExtra     * 1.4.1      2026-07-08 [2] CRAN (R 4.6.1)
- knitr          * 1.52       2026-09-06 [1] CRAN (R 4.6.1)
- labeling         0.4.3      2023-08-29 [2] CRAN (R 4.6.1)
- lattice          0.22-9     2026-02-09 [4] CRAN (R 4.5.2)
- lifecycle        1.0.5      2026-01-08 [1] CRAN (R 4.6.1)
- loo              2.10.1     2026-07-24 [2] CRAN (R 4.6.1)
- lubridate      * 1.9.5      2026-02-04 [1] CRAN (R 4.6.1)
- magrittr         2.0.5      2026-04-04 [1] CRAN (R 4.6.1)
- MASS             7.3-66     2026-07-15 [2] CRAN (R 4.6.1)
- Matrix           1.7-6      2026-07-25 [1] CRAN (R 4.6.1)
- matrixStats      1.5.0      2025-01-07 [2] CRAN (R 4.6.1)
- memoise          2.0.1      2021-11-26 [2] CRAN (R 4.6.1)
- mgcv             1.9-4      2025-11-07 [4] CRAN (R 4.5.2)
- mvtnorm          1.4-2      2026-07-12 [2] CRAN (R 4.6.1)
- nlme             3.1-170    2026-07-15 [1] CRAN (R 4.6.1)
- otel             0.2.0      2025-08-29 [2] CRAN (R 4.6.1)
- pbapply          1.7-4      2025-07-20 [2] CRAN (R 4.6.1)
- permute        * 0.9-10     2026-02-06 [2] CRAN (R 4.6.1)
- pillar           1.11.1     2025-09-17 [2] CRAN (R 4.6.1)
- pkgbuild         1.4.8      2025-05-26 [2] CRAN (R 4.6.1)
- pkgconfig        2.0.3      2019-09-22 [2] CRAN (R 4.6.1)
- pkgload          1.5.3      2026-06-15 [2] CRAN (R 4.6.1)
- plyr             1.8.9      2023-10-02 [1] CRAN (R 4.6.1)
- posterior        1.7.0      2026-04-01 [2] CRAN (R 4.6.1)
- processx         3.9.0      2026-04-22 [2] CRAN (R 4.6.1)
- ps               1.9.3      2026-04-20 [2] CRAN (R 4.6.1)
- purrr          * 1.2.2      2026-04-10 [2] CRAN (R 4.6.1)
- QuickJSR         1.10.0     2026-05-17 [3] CRAN (R 4.6.1)
- R6               2.6.1      2025-02-15 [1] CRAN (R 4.6.1)
- RColorBrewer     1.1-3      2022-04-03 [2] CRAN (R 4.6.1)
- Rcpp           * 1.1.2      2026-07-05 [1] CRAN (R 4.6.1)
- RcppParallel     6.2.0      2026-07-30 [2] CRAN (R 4.6.1)
- readr          * 2.2.0      2026-02-19 [2] CRAN (R 4.6.1)
- reshape2         1.4.5      2025-11-12 [2] CRAN (R 4.6.1)
- rlang            1.3.0      2026-07-05 [1] CRAN (R 4.6.1)
- rmarkdown        2.31       2026-03-26 [2] CRAN (R 4.6.1)
- rstan            2.32.7     2025-03-10 [2] CRAN (R 4.6.1)
- rstantools       2.7.0      2026-07-26 [2] CRAN (R 4.6.1)
- rstudioapi       0.19.0     2026-06-11 [1] CRAN (R 4.6.1)
- S7               0.2.2      2026-04-22 [2] CRAN (R 4.6.1)
- scales           1.4.0      2025-04-24 [2] CRAN (R 4.6.1)
- sessioninfo      1.2.4      2026-06-04 [2] CRAN (R 4.6.1)
- sketchy          1.0.7      2026-10-07 [1] CRANs (R 4.6.1)
- StanHeaders      2.32.10    2024-07-15 [2] CRAN (R 4.6.1)
- stringi          1.8.9      2026-08-04 [1] CRAN (R 4.6.1)
- stringr        * 1.6.0      2025-11-04 [1] CRAN (R 4.6.1)
- svglite          2.2.2      2025-10-21 [2] CRAN (R 4.6.1)
- svUnit           1.0.8      2025-08-26 [2] CRAN (R 4.6.1)
- systemfonts      1.3.2      2026-03-05 [2] CRAN (R 4.6.1)
- tensorA          0.36.2.1   2023-12-13 [2] CRAN (R 4.6.1)
- textshaping      1.0.5      2026-03-06 [2] CRAN (R 4.6.1)
- tibble         * 3.3.1      2026-01-11 [2] CRAN (R 4.6.1)
- tidybayes        3.0.7      2024-09-15 [2] CRAN (R 4.6.1)
- tidyr          * 1.3.2      2025-12-19 [2] CRAN (R 4.6.1)
- tidyselect       1.2.1      2024-03-11 [2] CRAN (R 4.6.1)
- tidyverse      * 2.0.0      2023-02-22 [2] CRAN (R 4.6.1)
- timechange       0.4.0      2026-01-29 [1] CRAN (R 4.6.1)
- tzdb             0.5.0      2025-03-15 [2] CRAN (R 4.6.1)
- usethis          3.2.1      2025-09-06 [2] CRAN (R 4.6.1)
- V8               8.2.0      2026-04-21 [2] CRAN (R 4.6.1)
- vctrs            0.7.3      2026-04-11 [1] CRAN (R 4.6.1)
- vegan          * 2.7-5      2026-05-25 [2] CRAN (R 4.6.1)
- viridis          0.6.5      2024-01-29 [2] CRAN (R 4.6.1)
- viridisLite      0.4.3      2026-02-04 [2] CRAN (R 4.6.1)
- withr            3.0.3      2026-06-19 [2] CRAN (R 4.6.1)
- xfun             0.61       2026-09-16 [1] CRAN (R 4.6.1)
- xml2             1.6.0      2026-06-22 [1] CRAN (R 4.6.1)
- xtable           1.8-8      2026-02-22 [2] CRAN (R 4.6.1)
- yaml             2.3.12     2025-12-10 [1] CRAN (R 4.6.1)
+ package        * version  date (UTC) lib source
+ abind            1.4-8    2024-09-12 [1] CRAN (R 4.5.2)
+ ape              5.8-1    2024-12-16 [1] CRAN (R 4.5.2)
+ arrayhelpers     1.1-0    2020-02-04 [1] CRAN (R 4.5.2)
+ backports        1.5.1    2026-04-03 [1] CRAN (R 4.5.2)
+ bayesplot        1.15.0   2025-12-12 [1] CRAN (R 4.5.2)
+ bridgesampling   1.2-1    2025-11-19 [1] CRAN (R 4.5.2)
+ brms           * 2.23.0   2025-09-09 [1] CRAN (R 4.5.2)
+ brmsish        * 1.0.0    2026-03-03 [1] Github (maRce10/brmsish@81ab826)
+ Brobdingnag      1.2-9    2022-10-19 [1] CRAN (R 4.5.2)
+ cachem           1.1.0    2024-05-16 [1] CRAN (R 4.5.2)
+ checkmate        2.3.4    2026-02-03 [1] CRAN (R 4.5.2)
+ cli              3.6.6    2026-04-09 [1] CRAN (R 4.5.2)
+ cluster          2.1.8.2  2026-02-05 [1] CRAN (R 4.5.2)
+ cmdstanr       * 0.9.0    2025-03-30 [1] https://stan-dev.r-universe.dev (R 4.5.2)
+ coda             0.19-4.1 2024-01-31 [1] CRAN (R 4.5.2)
+ codetools        0.2-20   2024-03-31 [1] CRAN (R 4.5.2)
+ cowplot          1.2.0    2025-07-07 [1] CRAN (R 4.5.2)
+ crayon           1.5.3    2024-06-20 [1] CRAN (R 4.5.2)
+ curl             8.0.0    2026-08-25 [1] CRAN (R 4.5.2)
+ devtools         2.4.6    2025-10-03 [1] CRAN (R 4.5.2)
+ digest           0.6.39   2025-11-19 [1] CRAN (R 4.5.2)
+ distributional   0.6.0    2026-01-14 [1] CRAN (R 4.5.2)
+ dplyr          * 1.2.1    2026-04-03 [1] CRAN (R 4.5.2)
+ ecodist        * 2.1.3    2023-10-30 [1] CRAN (R 4.5.2)
+ ellipsis         0.3.2    2021-04-29 [3] CRAN (R 4.1.1)
+ emmeans          2.0.4    2026-07-15 [1] CRAN (R 4.5.2)
+ estimability     2.0.0    2026-06-26 [1] CRAN (R 4.5.2)
+ evaluate         1.0.5    2025-08-27 [1] CRAN (R 4.5.2)
+ farver           2.1.2    2024-05-13 [1] CRAN (R 4.5.2)
+ fastmap          1.2.0    2024-05-15 [1] CRAN (R 4.5.2)
+ forcats        * 1.0.1    2025-09-25 [1] CRAN (R 4.5.2)
+ fs               2.1.0    2026-04-18 [1] CRAN (R 4.5.2)
+ generics         0.1.4    2025-05-09 [1] CRAN (R 4.5.2)
+ ggdist           3.3.3    2025-04-23 [1] CRAN (R 4.5.2)
+ ggh4x          * 0.3.1    2025-05-30 [1] CRAN (R 4.5.2)
+ ggplot2        * 4.0.3    2026-04-22 [1] CRAN (R 4.5.2)
+ ggtext         * 0.1.2    2022-09-16 [1] CRAN (R 4.5.2)
+ glue             1.8.1    2026-04-17 [1] CRAN (R 4.5.2)
+ gridExtra        2.3.1    2026-06-25 [1] CRAN (R 4.5.2)
+ gridtext         0.1.6    2026-02-19 [1] CRAN (R 4.5.2)
+ gtable           0.3.6    2024-10-25 [1] CRAN (R 4.5.2)
+ hms              1.1.4    2025-10-17 [1] CRAN (R 4.5.2)
+ htmltools        0.5.9    2025-12-04 [1] CRAN (R 4.5.2)
+ htmlwidgets      1.6.4    2023-12-06 [1] CRAN (R 4.5.2)
+ igraph           2.3.3    2026-06-26 [1] CRAN (R 4.5.2)
+ inline           0.3.21   2025-01-09 [1] CRAN (R 4.5.2)
+ jsonlite         2.0.0    2025-03-27 [1] CRAN (R 4.5.2)
+ kableExtra     * 1.4.0    2024-01-24 [1] CRAN (R 4.5.2)
+ knitr          * 1.52     2026-09-06 [1] CRAN (R 4.5.2)
+ labeling         0.4.3    2023-08-29 [1] CRAN (R 4.5.2)
+ lattice          0.22-9   2026-02-09 [1] CRAN (R 4.5.2)
+ lifecycle        1.0.5    2026-01-08 [1] CRAN (R 4.5.2)
+ loo              2.9.0    2025-12-23 [1] CRAN (R 4.5.2)
+ lubridate      * 1.9.5    2026-02-04 [1] CRAN (R 4.5.2)
+ magrittr         2.0.5    2026-04-04 [1] CRAN (R 4.5.2)
+ MASS             7.3-65   2025-02-28 [1] CRAN (R 4.5.2)
+ Matrix           1.7-4    2025-08-28 [1] CRAN (R 4.5.2)
+ matrixStats      1.5.0    2025-01-07 [1] CRAN (R 4.5.2)
+ memoise          2.0.1    2021-11-26 [3] CRAN (R 4.1.2)
+ mgcv             1.9-4    2025-11-07 [1] CRAN (R 4.5.2)
+ multcomp         1.4-29   2025-10-20 [1] CRAN (R 4.5.2)
+ mvtnorm          1.3-3    2025-01-10 [1] CRAN (R 4.5.2)
+ nlme             3.1-168  2025-03-31 [1] CRAN (R 4.5.2)
+ otel             0.2.0    2025-08-29 [1] CRAN (R 4.5.2)
+ packrat          0.9.3    2025-06-16 [1] CRAN (R 4.5.2)
+ pbapply          1.7-5    2026-09-01 [1] CRAN (R 4.5.2)
+ permute        * 0.9-10   2026-02-06 [1] CRAN (R 4.5.2)
+ pillar           1.11.1   2025-09-17 [1] CRAN (R 4.5.2)
+ pkgbuild         1.4.8    2025-05-26 [1] CRAN (R 4.5.2)
+ pkgconfig        2.0.3    2019-09-22 [3] CRAN (R 4.0.1)
+ pkgload          1.5.3    2026-06-15 [1] CRAN (R 4.5.2)
+ plyr             1.8.9    2023-10-02 [1] CRAN (R 4.5.2)
+ posterior        1.6.1    2025-02-27 [1] CRAN (R 4.5.2)
+ processx         3.9.0    2026-04-22 [1] CRAN (R 4.5.2)
+ ps               1.9.3    2026-04-20 [1] CRAN (R 4.5.2)
+ purrr          * 1.2.2    2026-04-10 [1] CRAN (R 4.5.2)
+ QuickJSR         1.9.0    2026-01-25 [1] CRAN (R 4.5.2)
+ R6               2.6.1    2025-02-15 [1] CRAN (R 4.5.2)
+ RColorBrewer     1.1-3    2022-04-03 [1] CRAN (R 4.5.2)
+ Rcpp           * 1.1.2    2026-07-05 [1] CRAN (R 4.5.2)
+ RcppParallel     5.1.11-2 2026-03-05 [1] CRAN (R 4.5.2)
+ readr          * 2.2.0    2026-02-19 [1] CRAN (R 4.5.2)
+ remotes          2.5.0    2024-03-17 [1] CRAN (R 4.5.2)
+ reshape2         1.4.5    2025-11-12 [1] CRAN (R 4.5.2)
+ rlang            1.3.0    2026-07-05 [1] CRAN (R 4.5.2)
+ rmarkdown        2.31     2026-03-26 [1] CRAN (R 4.5.2)
+ rstan            2.32.7   2025-03-10 [1] CRAN (R 4.5.2)
+ rstantools       2.6.0    2026-01-10 [1] CRAN (R 4.5.2)
+ rstudioapi       0.18.0   2026-01-16 [1] CRAN (R 4.5.2)
+ S7               0.2.2    2026-04-22 [1] CRAN (R 4.5.2)
+ sandwich         3.1-1    2024-09-15 [1] CRAN (R 4.5.2)
+ scales           1.4.0    2025-04-24 [1] CRAN (R 4.5.2)
+ sessioninfo      1.2.3    2025-02-05 [1] CRAN (R 4.5.2)
+ sketchy          1.0.7    2026-03-03 [1] CRANs (R 4.5.2)
+ StanHeaders      2.32.10  2024-07-15 [1] CRAN (R 4.5.2)
+ stringi          1.8.9    2026-08-04 [1] CRAN (R 4.5.2)
+ stringr        * 1.6.0    2025-11-04 [1] CRAN (R 4.5.2)
+ survival         3.8-6    2026-01-16 [1] CRAN (R 4.5.2)
+ svglite          2.2.2    2025-10-21 [1] CRAN (R 4.5.2)
+ svUnit           1.0.8    2025-08-26 [1] CRAN (R 4.5.2)
+ systemfonts      1.3.1    2025-10-01 [1] CRAN (R 4.5.2)
+ tensorA          0.36.2.1 2023-12-13 [1] CRAN (R 4.5.2)
+ textshaping      1.0.4    2025-10-10 [1] CRAN (R 4.5.2)
+ TH.data          1.1-5    2025-11-17 [1] CRAN (R 4.5.2)
+ tibble         * 3.3.1    2026-01-11 [1] CRAN (R 4.5.2)
+ tidybayes        3.0.7    2024-09-15 [1] CRAN (R 4.5.2)
+ tidyr          * 1.3.2    2025-12-19 [1] CRAN (R 4.5.2)
+ tidyselect       1.2.1    2024-03-11 [1] CRAN (R 4.5.2)
+ tidyverse      * 2.0.0    2023-02-22 [1] CRAN (R 4.5.2)
+ timechange       0.4.0    2026-01-29 [1] CRAN (R 4.5.2)
+ tzdb             0.5.0    2025-03-15 [1] CRAN (R 4.5.2)
+ usethis          3.2.1    2025-09-06 [1] CRAN (R 4.5.2)
+ V8               8.2.0    2026-04-21 [1] CRAN (R 4.5.2)
+ vctrs            0.7.3    2026-04-11 [1] CRAN (R 4.5.2)
+ vegan          * 2.7-5    2026-05-25 [1] CRAN (R 4.5.2)
+ viridis          0.6.5    2024-01-29 [1] CRAN (R 4.5.2)
+ viridisLite      0.4.3    2026-02-04 [1] CRAN (R 4.5.2)
+ withr            3.0.3    2026-06-19 [1] CRAN (R 4.5.2)
+ xaringanExtra    0.8.0    2024-05-19 [1] CRAN (R 4.5.2)
+ xfun             0.61     2026-09-16 [1] CRAN (R 4.5.2)
+ xml2             1.5.2    2026-01-17 [1] CRAN (R 4.5.2)
+ xtable           1.8-8    2026-02-22 [1] CRAN (R 4.5.2)
+ yaml             2.3.12   2025-12-10 [1] CRAN (R 4.5.2)
+ zoo              1.8-15   2025-12-15 [1] CRAN (R 4.5.2)
 
- [1] /home/m/R/x86_64-pc-linux-gnu-library/4.6
+ [1] /home/m/R/x86_64-pc-linux-gnu-library/4.5
  [2] /usr/local/lib/R/site-library
  [3] /usr/lib/R/site-library
  [4] /usr/lib/R/library
@@ -2565,225 +2610,255 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb19-282"><a href="#cb19-282" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-283"><a href="#cb19-283" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb19-284"><a href="#cb19-284" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-285"><a href="#cb19-285" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb19-286"><a href="#cb19-286" aria-hidden="true" tabindex="-1"></a><span class="fu">## Population shift model summaries</span></span>
+<span id="cb19-285"><a href="#cb19-285" aria-hidden="true" tabindex="-1"></a>::: {.alert .alert-info}</span>
+<span id="cb19-286"><a href="#cb19-286" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary {.unnumbered .unlisted}</span></span>
 <span id="cb19-287"><a href="#cb19-287" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-288"><a href="#cb19-288" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift summaries simple}</span></span>
-<span id="cb19-289"><a href="#cb19-289" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: "asis"</span></span>
-<span id="cb19-290"><a href="#cb19-290" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-291"><a href="#cb19-291" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm <span class="cf">in</span> <span class="fu">names</span>(shift_models_simple)) {</span>
-<span id="cb19-292"><a href="#cb19-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-293"><a href="#cb19-293" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"##### "</span>, <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span>
-<span id="cb19-294"><a href="#cb19-294" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-295"><a href="#cb19-295" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extended_summary</span>(</span>
-<span id="cb19-296"><a href="#cb19-296" aria-hidden="true" tabindex="-1"></a>    shift_models_simple[[nm]],</span>
-<span id="cb19-297"><a href="#cb19-297" aria-hidden="true" tabindex="-1"></a>    <span class="at">highlight =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb19-298"><a href="#cb19-298" aria-hidden="true" tabindex="-1"></a>    <span class="at">trace.palette =</span> viridis<span class="sc">::</span>mako,</span>
-<span id="cb19-299"><a href="#cb19-299" aria-hidden="true" tabindex="-1"></a>    <span class="at">remove.intercepts =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb19-300"><a href="#cb19-300" aria-hidden="true" tabindex="-1"></a>    <span class="at">print.name =</span> <span class="cn">FALSE</span></span>
-<span id="cb19-301"><a href="#cb19-301" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb19-288"><a href="#cb19-288" aria-hidden="true" tabindex="-1"></a><span class="fu">### Model summary {.unnumbered .unlisted}</span></span>
+<span id="cb19-289"><a href="#cb19-289" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-290"><a href="#cb19-290" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Only two of the twelve focal-congener combinations have enough data to test (populations with and without the congener, plus congener reference populations elsewhere): *Ruficollis* vs. *Hypoxantha* and the reverse, *Hypoxantha* vs. *Ruficollis*. Neither co-occurrence effect is credible (*Ruficollis* vs. *Hypoxantha*: -0.228 SD, 95% CI [-0.778, 0.405]; *Hypoxantha* vs. *Ruficollis*: 0.004 SD, 95% CI <span class="co">[</span><span class="ot">-0.537, 0.554</span><span class="co">]</span>).</span>
+<span id="cb19-291"><a href="#cb19-291" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>The *Hypoxantha* vs. *Ruficollis* model shows a convergence warning (Rhat = 1.094) and a high divergent-transition rate (3128/20,000 draws, 15.6%), so its null result should be treated as inconclusive rather than as evidence of no shift. The *Ruficollis* vs. *Hypoxantha* model converged cleanly (Rhat = 1.003, 146/20,000 divergent, 0.7%) and its null result is more trustworthy.</span>
+<span id="cb19-292"><a href="#cb19-292" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Expressed relative to the typical between-population difference for the focal species, both estimates are extremely imprecise (*Ruficollis* vs. *Hypoxantha*: -0.780, 95% CI [-5.768, 0.874]; *Hypoxantha* vs. *Ruficollis*: 0.005, 95% CI <span class="co">[</span><span class="ot">-6.764, 4.826</span><span class="co">]</span>) — the data cannot rule out a shift as large as several ordinary population differences in either direction.</span>
+<span id="cb19-293"><a href="#cb19-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-294"><a href="#cb19-294" aria-hidden="true" tabindex="-1"></a><span class="fu">### Interpretation {.unnumbered .unlisted}</span></span>
+<span id="cb19-295"><a href="#cb19-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-296"><a href="#cb19-296" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>With only one species pair testable and very few populations per comparison, Step 3 has essentially no statistical power for simple songs: the absence of a credible shift reflects data scarcity more than evidence against population-level convergence or divergence.</span>
+<span id="cb19-297"><a href="#cb19-297" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>The point estimates are at least directionally consistent with the Step 2 sympatry pattern: *Ruficollis* populations that co-occur with *Hypoxantha* trend towards acoustic convergence (negative shift) rather than divergence, the opposite of what simple-song character displacement in Step 2 would predict if it operated through this specific species' shift; given the width of the interval, however, this is only a weak hint and not a finding.</span>
+<span id="cb19-298"><a href="#cb19-298" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb19-299"><a href="#cb19-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-300"><a href="#cb19-300" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb19-301"><a href="#cb19-301" aria-hidden="true" tabindex="-1"></a><span class="fu">## Population shift model summaries</span></span>
 <span id="cb19-302"><a href="#cb19-302" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-303"><a href="#cb19-303" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span>
-<span id="cb19-304"><a href="#cb19-304" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-303"><a href="#cb19-303" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift summaries simple}</span></span>
+<span id="cb19-304"><a href="#cb19-304" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: "asis"</span></span>
 <span id="cb19-305"><a href="#cb19-305" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-306"><a href="#cb19-306" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb19-307"><a href="#cb19-307" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb19-308"><a href="#cb19-308" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-309"><a href="#cb19-309" aria-hidden="true" tabindex="-1"></a><span class="fu"># Complex songs</span></span>
-<span id="cb19-310"><a href="#cb19-310" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-311"><a href="#cb19-311" aria-hidden="true" tabindex="-1"></a><span class="in">```{r shift combinations complex}</span></span>
-<span id="cb19-312"><a href="#cb19-312" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-313"><a href="#cb19-313" aria-hidden="true" tabindex="-1"></a>shift_combos_complex <span class="ot">&lt;-</span> <span class="fu">shift_combinations</span>(occ_complex)</span>
-<span id="cb19-314"><a href="#cb19-314" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-315"><a href="#cb19-315" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(shift_combos_complex)</span>
-<span id="cb19-316"><a href="#cb19-316" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-317"><a href="#cb19-317" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb19-318"><a href="#cb19-318" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-319"><a href="#cb19-319" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb19-320"><a href="#cb19-320" aria-hidden="true" tabindex="-1"></a>\begin{split}</span>
-<span id="cb19-321"><a href="#cb19-321" aria-hidden="true" tabindex="-1"></a>\text{acoustic distance}_{\text{focal, congener}} &amp;\sim \text{cooccur} <span class="sc">\\</span></span>
-<span id="cb19-322"><a href="#cb19-322" aria-hidden="true" tabindex="-1"></a>&amp;\quad + (1 \mid \text{focal population}) + (1 \mid \text{congener population}) <span class="sc">\\</span></span>
-<span id="cb19-323"><a href="#cb19-323" aria-hidden="true" tabindex="-1"></a>&amp;\quad + (1 \mid \text{focal individual}) + (1 \mid \text{congener individual})</span>
-<span id="cb19-324"><a href="#cb19-324" aria-hidden="true" tabindex="-1"></a>\end{split}</span>
-<span id="cb19-325"><a href="#cb19-325" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb19-326"><a href="#cb19-326" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-327"><a href="#cb19-327" aria-hidden="true" tabindex="-1"></a>Because pairs are oriented, focal and congener populations (and individuals) enter as separate crossed random effects rather than as multi-membership terms. The co-occurrence effect is a property of focal populations. It is therefore evaluated against the variation among focal populations (<span class="in">`sd(pop1)`</span>), which is the appropriate and conservative unit of replication given the very small number of populations involved. The response is standardized within each focal–congener dataset, with the same regularizing priors as in Step 1.</span>
-<span id="cb19-328"><a href="#cb19-328" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-329"><a href="#cb19-329" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift models complex}</span></span>
-<span id="cb19-330"><a href="#cb19-330" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-331"><a href="#cb19-331" aria-hidden="true" tabindex="-1"></a>shift_models_complex <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb19-332"><a href="#cb19-332" aria-hidden="true" tabindex="-1"></a>shift_dat_complex <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb19-306"><a href="#cb19-306" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm <span class="cf">in</span> <span class="fu">names</span>(shift_models_simple)) {</span>
+<span id="cb19-307"><a href="#cb19-307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-308"><a href="#cb19-308" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"##### "</span>, <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span>
+<span id="cb19-309"><a href="#cb19-309" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-310"><a href="#cb19-310" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extended_summary</span>(</span>
+<span id="cb19-311"><a href="#cb19-311" aria-hidden="true" tabindex="-1"></a>    shift_models_simple[[nm]],</span>
+<span id="cb19-312"><a href="#cb19-312" aria-hidden="true" tabindex="-1"></a>    <span class="at">highlight =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb19-313"><a href="#cb19-313" aria-hidden="true" tabindex="-1"></a>    <span class="at">trace.palette =</span> viridis<span class="sc">::</span>mako,</span>
+<span id="cb19-314"><a href="#cb19-314" aria-hidden="true" tabindex="-1"></a>    <span class="at">remove.intercepts =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb19-315"><a href="#cb19-315" aria-hidden="true" tabindex="-1"></a>    <span class="at">print.name =</span> <span class="cn">FALSE</span></span>
+<span id="cb19-316"><a href="#cb19-316" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb19-317"><a href="#cb19-317" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-318"><a href="#cb19-318" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span>
+<span id="cb19-319"><a href="#cb19-319" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-320"><a href="#cb19-320" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-321"><a href="#cb19-321" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-322"><a href="#cb19-322" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb19-323"><a href="#cb19-323" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-324"><a href="#cb19-324" aria-hidden="true" tabindex="-1"></a><span class="fu"># Complex songs</span></span>
+<span id="cb19-325"><a href="#cb19-325" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-326"><a href="#cb19-326" aria-hidden="true" tabindex="-1"></a><span class="in">```{r shift combinations complex}</span></span>
+<span id="cb19-327"><a href="#cb19-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-328"><a href="#cb19-328" aria-hidden="true" tabindex="-1"></a>shift_combos_complex <span class="ot">&lt;-</span> <span class="fu">shift_combinations</span>(occ_complex)</span>
+<span id="cb19-329"><a href="#cb19-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-330"><a href="#cb19-330" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(shift_combos_complex)</span>
+<span id="cb19-331"><a href="#cb19-331" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-332"><a href="#cb19-332" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb19-333"><a href="#cb19-333" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-334"><a href="#cb19-334" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">which</span>(shift_combos_complex<span class="sc">$</span>testable)) {</span>
-<span id="cb19-335"><a href="#cb19-335" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-336"><a href="#cb19-336" aria-hidden="true" tabindex="-1"></a>  focal <span class="ot">&lt;-</span> shift_combos_complex<span class="sc">$</span>focal[k]</span>
-<span id="cb19-337"><a href="#cb19-337" aria-hidden="true" tabindex="-1"></a>  congener <span class="ot">&lt;-</span> shift_combos_complex<span class="sc">$</span>congener[k]</span>
-<span id="cb19-338"><a href="#cb19-338" aria-hidden="true" tabindex="-1"></a>  nm <span class="ot">&lt;-</span> <span class="fu">paste</span>(focal, <span class="st">"vs"</span>, congener, <span class="at">sep =</span> <span class="st">"_"</span>)</span>
-<span id="cb19-339"><a href="#cb19-339" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-340"><a href="#cb19-340" aria-hidden="true" tabindex="-1"></a>  shift_dat_complex[[nm]] <span class="ot">&lt;-</span> <span class="fu">population_shift_data</span>(</span>
-<span id="cb19-341"><a href="#cb19-341" aria-hidden="true" tabindex="-1"></a>    <span class="at">pairs =</span> pairs_complex,</span>
-<span id="cb19-342"><a href="#cb19-342" aria-hidden="true" tabindex="-1"></a>    <span class="at">focal =</span> focal,</span>
-<span id="cb19-343"><a href="#cb19-343" aria-hidden="true" tabindex="-1"></a>    <span class="at">congener =</span> congener,</span>
-<span id="cb19-344"><a href="#cb19-344" aria-hidden="true" tabindex="-1"></a>    <span class="at">occ =</span> occ_complex</span>
-<span id="cb19-345"><a href="#cb19-345" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb19-346"><a href="#cb19-346" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-347"><a href="#cb19-347" aria-hidden="true" tabindex="-1"></a>  shift_models_complex[[nm]] <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
-<span id="cb19-348"><a href="#cb19-348" aria-hidden="true" tabindex="-1"></a>    acoustic_distance_sc <span class="sc">~</span> cooccur <span class="sc">+</span></span>
-<span id="cb19-349"><a href="#cb19-349" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">1</span> <span class="sc">|</span> pop1) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> pop2) <span class="sc">+</span></span>
-<span id="cb19-350"><a href="#cb19-350" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">1</span> <span class="sc">|</span> individual1) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> individual2),</span>
-<span id="cb19-351"><a href="#cb19-351" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> shift_dat_complex[[nm]],</span>
-<span id="cb19-352"><a href="#cb19-352" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
-<span id="cb19-353"><a href="#cb19-353" aria-hidden="true" tabindex="-1"></a>    <span class="at">prior =</span> priors_ws,</span>
-<span id="cb19-354"><a href="#cb19-354" aria-hidden="true" tabindex="-1"></a>    <span class="at">cores =</span> <span class="dv">4</span>,</span>
-<span id="cb19-355"><a href="#cb19-355" aria-hidden="true" tabindex="-1"></a>    <span class="at">chains =</span> <span class="dv">4</span>,</span>
-<span id="cb19-356"><a href="#cb19-356" aria-hidden="true" tabindex="-1"></a>    <span class="at">iter =</span> <span class="dv">10000</span>,</span>
-<span id="cb19-357"><a href="#cb19-357" aria-hidden="true" tabindex="-1"></a>    <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb19-358"><a href="#cb19-358" aria-hidden="true" tabindex="-1"></a>    <span class="at">threads =</span> <span class="fu">threading</span>(<span class="dv">8</span>),</span>
-<span id="cb19-359"><a href="#cb19-359" aria-hidden="true" tabindex="-1"></a>    <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> <span class="fl">0.95</span>, <span class="at">max_treedepth =</span> <span class="dv">15</span>),</span>
-<span id="cb19-360"><a href="#cb19-360" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">"./data/processed/fits/population_shift_"</span>, nm, <span class="st">"_complex_fit"</span>)</span>
-<span id="cb19-361"><a href="#cb19-361" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb19-362"><a href="#cb19-362" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb19-363"><a href="#cb19-363" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-364"><a href="#cb19-364" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb19-365"><a href="#cb19-365" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-366"><a href="#cb19-366" aria-hidden="true" tabindex="-1"></a>Prior predictive checks for the population shift models:</span>
-<span id="cb19-367"><a href="#cb19-367" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-368"><a href="#cb19-368" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prior predictive check population shift complex}</span></span>
-<span id="cb19-369"><a href="#cb19-369" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb19-370"><a href="#cb19-370" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-371"><a href="#cb19-371" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm <span class="cf">in</span> <span class="fu">names</span>(shift_dat_complex)) {</span>
-<span id="cb19-372"><a href="#cb19-372" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-373"><a href="#cb19-373" aria-hidden="true" tabindex="-1"></a>  prior_only_shift <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
-<span id="cb19-374"><a href="#cb19-374" aria-hidden="true" tabindex="-1"></a>    acoustic_distance_sc <span class="sc">~</span> cooccur <span class="sc">+</span></span>
-<span id="cb19-375"><a href="#cb19-375" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">1</span> <span class="sc">|</span> pop1) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> pop2) <span class="sc">+</span></span>
-<span id="cb19-376"><a href="#cb19-376" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">1</span> <span class="sc">|</span> individual1) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> individual2),</span>
-<span id="cb19-377"><a href="#cb19-377" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> shift_dat_complex[[nm]],</span>
-<span id="cb19-378"><a href="#cb19-378" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
-<span id="cb19-379"><a href="#cb19-379" aria-hidden="true" tabindex="-1"></a>    <span class="at">prior =</span> priors_ws,</span>
-<span id="cb19-380"><a href="#cb19-380" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample_prior =</span> <span class="st">"only"</span>,</span>
-<span id="cb19-381"><a href="#cb19-381" aria-hidden="true" tabindex="-1"></a>    <span class="at">chains =</span> <span class="dv">2</span>,</span>
-<span id="cb19-382"><a href="#cb19-382" aria-hidden="true" tabindex="-1"></a>    <span class="at">iter =</span> <span class="dv">2000</span>,</span>
-<span id="cb19-383"><a href="#cb19-383" aria-hidden="true" tabindex="-1"></a>    <span class="at">cores =</span> <span class="dv">2</span>,</span>
-<span id="cb19-384"><a href="#cb19-384" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> <span class="dv">123</span>,</span>
-<span id="cb19-385"><a href="#cb19-385" aria-hidden="true" tabindex="-1"></a>    <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb19-386"><a href="#cb19-386" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">"./data/processed/fits/prior_only_population_shift_"</span>, nm, <span class="st">"_complex"</span>)</span>
-<span id="cb19-387"><a href="#cb19-387" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb19-388"><a href="#cb19-388" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-389"><a href="#cb19-389" aria-hidden="true" tabindex="-1"></a>  <span class="co"># base::print - the document redefines print() as a kable wrapper</span></span>
-<span id="cb19-390"><a href="#cb19-390" aria-hidden="true" tabindex="-1"></a>  base<span class="sc">::</span><span class="fu">print</span>(<span class="fu">prior_check_plot</span>(</span>
-<span id="cb19-391"><a href="#cb19-391" aria-hidden="true" tabindex="-1"></a>    prior_only_shift,</span>
-<span id="cb19-392"><a href="#cb19-392" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="st">"Prior predictive check (complex songs, "</span>, <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm), <span class="st">")"</span>)</span>
-<span id="cb19-393"><a href="#cb19-393" aria-hidden="true" tabindex="-1"></a>  ))</span>
-<span id="cb19-394"><a href="#cb19-394" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb19-395"><a href="#cb19-395" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-396"><a href="#cb19-396" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb19-397"><a href="#cb19-397" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-398"><a href="#cb19-398" aria-hidden="true" tabindex="-1"></a>Mean acoustic distance from each focal population to the congener's songs recorded elsewhere (points: population means; bars: 95% intervals of the mean):</span>
-<span id="cb19-399"><a href="#cb19-399" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-400"><a href="#cb19-400" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift plot complex}</span></span>
-<span id="cb19-401"><a href="#cb19-401" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5</span></span>
-<span id="cb19-402"><a href="#cb19-402" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-403"><a href="#cb19-403" aria-hidden="true" tabindex="-1"></a>shift_plot_dat_complex <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(shift_dat_complex), <span class="cf">function</span>(nm) {</span>
-<span id="cb19-404"><a href="#cb19-404" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> shift_dat_complex[[nm]]</span>
-<span id="cb19-405"><a href="#cb19-405" aria-hidden="true" tabindex="-1"></a>  agg <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">split</span>(x, x<span class="sc">$</span>focal_population), <span class="cf">function</span>(p) {</span>
-<span id="cb19-406"><a href="#cb19-406" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
-<span id="cb19-407"><a href="#cb19-407" aria-hidden="true" tabindex="-1"></a>      <span class="at">focal_population =</span> p<span class="sc">$</span>focal_population[<span class="dv">1</span>],</span>
-<span id="cb19-408"><a href="#cb19-408" aria-hidden="true" tabindex="-1"></a>      <span class="at">cooccur =</span> p<span class="sc">$</span>cooccur[<span class="dv">1</span>],</span>
-<span id="cb19-409"><a href="#cb19-409" aria-hidden="true" tabindex="-1"></a>      <span class="at">mean =</span> <span class="fu">mean</span>(p<span class="sc">$</span>acoustic_distance),</span>
-<span id="cb19-410"><a href="#cb19-410" aria-hidden="true" tabindex="-1"></a>      <span class="at">se =</span> <span class="fu">sd</span>(p<span class="sc">$</span>acoustic_distance) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">nrow</span>(p))</span>
-<span id="cb19-411"><a href="#cb19-411" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb19-412"><a href="#cb19-412" aria-hidden="true" tabindex="-1"></a>  }))</span>
-<span id="cb19-413"><a href="#cb19-413" aria-hidden="true" tabindex="-1"></a>  agg<span class="sc">$</span>comparison <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm)</span>
-<span id="cb19-414"><a href="#cb19-414" aria-hidden="true" tabindex="-1"></a>  agg</span>
-<span id="cb19-415"><a href="#cb19-415" aria-hidden="true" tabindex="-1"></a>}))</span>
-<span id="cb19-416"><a href="#cb19-416" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-417"><a href="#cb19-417" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(shift_plot_dat_complex, <span class="fu">aes</span>(<span class="at">x =</span> focal_population, <span class="at">y =</span> mean, <span class="at">color =</span> cooccur)) <span class="sc">+</span></span>
-<span id="cb19-418"><a href="#cb19-418" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> mean <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> se, <span class="at">ymax =</span> mean <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> se), <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb19-419"><a href="#cb19-419" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> comparison, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
-<span id="cb19-420"><a href="#cb19-420" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_d</span>(<span class="at">option =</span> <span class="st">"mako"</span>, <span class="at">begin =</span> <span class="fl">0.3</span>, <span class="at">end =</span> <span class="fl">0.7</span>,</span>
-<span id="cb19-421"><a href="#cb19-421" aria-hidden="true" tabindex="-1"></a>                        <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0"</span> <span class="ot">=</span> <span class="st">"No"</span>, <span class="st">"1"</span> <span class="ot">=</span> <span class="st">"Yes"</span>),</span>
-<span id="cb19-422"><a href="#cb19-422" aria-hidden="true" tabindex="-1"></a>                        <span class="at">name =</span> <span class="st">"Co-occurs</span><span class="sc">\n</span><span class="st">with congener"</span>) <span class="sc">+</span></span>
-<span id="cb19-423"><a href="#cb19-423" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Focal population"</span>, <span class="at">y =</span> <span class="st">"Acoustic distance to congener"</span>) <span class="sc">+</span></span>
-<span id="cb19-424"><a href="#cb19-424" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span>
-<span id="cb19-425"><a href="#cb19-425" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-426"><a href="#cb19-426" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb19-427"><a href="#cb19-427" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-428"><a href="#cb19-428" aria-hidden="true" tabindex="-1"></a>Co-occurrence effects (negative = focal populations living with the congener are closer to its song, i.e. convergence; positive = divergence):</span>
-<span id="cb19-429"><a href="#cb19-429" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-430"><a href="#cb19-430" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift effects complex}</span></span>
+<span id="cb19-334"><a href="#cb19-334" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb19-335"><a href="#cb19-335" aria-hidden="true" tabindex="-1"></a>\begin{split}</span>
+<span id="cb19-336"><a href="#cb19-336" aria-hidden="true" tabindex="-1"></a>\text{acoustic distance}_{\text{focal, congener}} &amp;\sim \text{cooccur} <span class="sc">\\</span></span>
+<span id="cb19-337"><a href="#cb19-337" aria-hidden="true" tabindex="-1"></a>&amp;\quad + (1 \mid \text{focal population}) + (1 \mid \text{congener population}) <span class="sc">\\</span></span>
+<span id="cb19-338"><a href="#cb19-338" aria-hidden="true" tabindex="-1"></a>&amp;\quad + (1 \mid \text{focal individual}) + (1 \mid \text{congener individual})</span>
+<span id="cb19-339"><a href="#cb19-339" aria-hidden="true" tabindex="-1"></a>\end{split}</span>
+<span id="cb19-340"><a href="#cb19-340" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb19-341"><a href="#cb19-341" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-342"><a href="#cb19-342" aria-hidden="true" tabindex="-1"></a>Because pairs are oriented, focal and congener populations (and individuals) enter as separate crossed random effects rather than as multi-membership terms. The co-occurrence effect is a property of focal populations. It is therefore evaluated against the variation among focal populations (<span class="in">`sd(pop1)`</span>), which is the appropriate and conservative unit of replication given the very small number of populations involved. The response is standardized within each focal–congener dataset, with the same regularizing priors as in Step 1.</span>
+<span id="cb19-343"><a href="#cb19-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-344"><a href="#cb19-344" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift models complex}</span></span>
+<span id="cb19-345"><a href="#cb19-345" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-346"><a href="#cb19-346" aria-hidden="true" tabindex="-1"></a>shift_models_complex <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb19-347"><a href="#cb19-347" aria-hidden="true" tabindex="-1"></a>shift_dat_complex <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb19-348"><a href="#cb19-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-349"><a href="#cb19-349" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">which</span>(shift_combos_complex<span class="sc">$</span>testable)) {</span>
+<span id="cb19-350"><a href="#cb19-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-351"><a href="#cb19-351" aria-hidden="true" tabindex="-1"></a>  focal <span class="ot">&lt;-</span> shift_combos_complex<span class="sc">$</span>focal[k]</span>
+<span id="cb19-352"><a href="#cb19-352" aria-hidden="true" tabindex="-1"></a>  congener <span class="ot">&lt;-</span> shift_combos_complex<span class="sc">$</span>congener[k]</span>
+<span id="cb19-353"><a href="#cb19-353" aria-hidden="true" tabindex="-1"></a>  nm <span class="ot">&lt;-</span> <span class="fu">paste</span>(focal, <span class="st">"vs"</span>, congener, <span class="at">sep =</span> <span class="st">"_"</span>)</span>
+<span id="cb19-354"><a href="#cb19-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-355"><a href="#cb19-355" aria-hidden="true" tabindex="-1"></a>  shift_dat_complex[[nm]] <span class="ot">&lt;-</span> <span class="fu">population_shift_data</span>(</span>
+<span id="cb19-356"><a href="#cb19-356" aria-hidden="true" tabindex="-1"></a>    <span class="at">pairs =</span> pairs_complex,</span>
+<span id="cb19-357"><a href="#cb19-357" aria-hidden="true" tabindex="-1"></a>    <span class="at">focal =</span> focal,</span>
+<span id="cb19-358"><a href="#cb19-358" aria-hidden="true" tabindex="-1"></a>    <span class="at">congener =</span> congener,</span>
+<span id="cb19-359"><a href="#cb19-359" aria-hidden="true" tabindex="-1"></a>    <span class="at">occ =</span> occ_complex</span>
+<span id="cb19-360"><a href="#cb19-360" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb19-361"><a href="#cb19-361" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-362"><a href="#cb19-362" aria-hidden="true" tabindex="-1"></a>  shift_models_complex[[nm]] <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
+<span id="cb19-363"><a href="#cb19-363" aria-hidden="true" tabindex="-1"></a>    acoustic_distance_sc <span class="sc">~</span> cooccur <span class="sc">+</span></span>
+<span id="cb19-364"><a href="#cb19-364" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">1</span> <span class="sc">|</span> pop1) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> pop2) <span class="sc">+</span></span>
+<span id="cb19-365"><a href="#cb19-365" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">1</span> <span class="sc">|</span> individual1) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> individual2),</span>
+<span id="cb19-366"><a href="#cb19-366" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> shift_dat_complex[[nm]],</span>
+<span id="cb19-367"><a href="#cb19-367" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
+<span id="cb19-368"><a href="#cb19-368" aria-hidden="true" tabindex="-1"></a>    <span class="at">prior =</span> priors_ws,</span>
+<span id="cb19-369"><a href="#cb19-369" aria-hidden="true" tabindex="-1"></a>    <span class="at">cores =</span> <span class="dv">4</span>,</span>
+<span id="cb19-370"><a href="#cb19-370" aria-hidden="true" tabindex="-1"></a>    <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb19-371"><a href="#cb19-371" aria-hidden="true" tabindex="-1"></a>    <span class="at">iter =</span> <span class="dv">10000</span>,</span>
+<span id="cb19-372"><a href="#cb19-372" aria-hidden="true" tabindex="-1"></a>    <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb19-373"><a href="#cb19-373" aria-hidden="true" tabindex="-1"></a>    <span class="at">threads =</span> <span class="fu">threading</span>(<span class="dv">8</span>),</span>
+<span id="cb19-374"><a href="#cb19-374" aria-hidden="true" tabindex="-1"></a>    <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> <span class="fl">0.95</span>, <span class="at">max_treedepth =</span> <span class="dv">15</span>),</span>
+<span id="cb19-375"><a href="#cb19-375" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">"./data/processed/fits/population_shift_"</span>, nm, <span class="st">"_complex_fit"</span>)</span>
+<span id="cb19-376"><a href="#cb19-376" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb19-377"><a href="#cb19-377" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-378"><a href="#cb19-378" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-379"><a href="#cb19-379" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-380"><a href="#cb19-380" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-381"><a href="#cb19-381" aria-hidden="true" tabindex="-1"></a>Prior predictive checks for the population shift models:</span>
+<span id="cb19-382"><a href="#cb19-382" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-383"><a href="#cb19-383" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prior predictive check population shift complex}</span></span>
+<span id="cb19-384"><a href="#cb19-384" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb19-385"><a href="#cb19-385" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-386"><a href="#cb19-386" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm <span class="cf">in</span> <span class="fu">names</span>(shift_dat_complex)) {</span>
+<span id="cb19-387"><a href="#cb19-387" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-388"><a href="#cb19-388" aria-hidden="true" tabindex="-1"></a>  prior_only_shift <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
+<span id="cb19-389"><a href="#cb19-389" aria-hidden="true" tabindex="-1"></a>    acoustic_distance_sc <span class="sc">~</span> cooccur <span class="sc">+</span></span>
+<span id="cb19-390"><a href="#cb19-390" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">1</span> <span class="sc">|</span> pop1) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> pop2) <span class="sc">+</span></span>
+<span id="cb19-391"><a href="#cb19-391" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">1</span> <span class="sc">|</span> individual1) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> individual2),</span>
+<span id="cb19-392"><a href="#cb19-392" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> shift_dat_complex[[nm]],</span>
+<span id="cb19-393"><a href="#cb19-393" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
+<span id="cb19-394"><a href="#cb19-394" aria-hidden="true" tabindex="-1"></a>    <span class="at">prior =</span> priors_ws,</span>
+<span id="cb19-395"><a href="#cb19-395" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample_prior =</span> <span class="st">"only"</span>,</span>
+<span id="cb19-396"><a href="#cb19-396" aria-hidden="true" tabindex="-1"></a>    <span class="at">chains =</span> <span class="dv">2</span>,</span>
+<span id="cb19-397"><a href="#cb19-397" aria-hidden="true" tabindex="-1"></a>    <span class="at">iter =</span> <span class="dv">2000</span>,</span>
+<span id="cb19-398"><a href="#cb19-398" aria-hidden="true" tabindex="-1"></a>    <span class="at">cores =</span> <span class="dv">2</span>,</span>
+<span id="cb19-399"><a href="#cb19-399" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> <span class="dv">123</span>,</span>
+<span id="cb19-400"><a href="#cb19-400" aria-hidden="true" tabindex="-1"></a>    <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb19-401"><a href="#cb19-401" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">"./data/processed/fits/prior_only_population_shift_"</span>, nm, <span class="st">"_complex"</span>)</span>
+<span id="cb19-402"><a href="#cb19-402" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb19-403"><a href="#cb19-403" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-404"><a href="#cb19-404" aria-hidden="true" tabindex="-1"></a>  <span class="co"># base::print - the document redefines print() as a kable wrapper</span></span>
+<span id="cb19-405"><a href="#cb19-405" aria-hidden="true" tabindex="-1"></a>  base<span class="sc">::</span><span class="fu">print</span>(<span class="fu">prior_check_plot</span>(</span>
+<span id="cb19-406"><a href="#cb19-406" aria-hidden="true" tabindex="-1"></a>    prior_only_shift,</span>
+<span id="cb19-407"><a href="#cb19-407" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="st">"Prior predictive check (complex songs, "</span>, <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm), <span class="st">")"</span>)</span>
+<span id="cb19-408"><a href="#cb19-408" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb19-409"><a href="#cb19-409" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-410"><a href="#cb19-410" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-411"><a href="#cb19-411" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-412"><a href="#cb19-412" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-413"><a href="#cb19-413" aria-hidden="true" tabindex="-1"></a>Mean acoustic distance from each focal population to the congener's songs recorded elsewhere (points: population means; bars: 95% intervals of the mean):</span>
+<span id="cb19-414"><a href="#cb19-414" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-415"><a href="#cb19-415" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift plot complex}</span></span>
+<span id="cb19-416"><a href="#cb19-416" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5</span></span>
+<span id="cb19-417"><a href="#cb19-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-418"><a href="#cb19-418" aria-hidden="true" tabindex="-1"></a>shift_plot_dat_complex <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(shift_dat_complex), <span class="cf">function</span>(nm) {</span>
+<span id="cb19-419"><a href="#cb19-419" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> shift_dat_complex[[nm]]</span>
+<span id="cb19-420"><a href="#cb19-420" aria-hidden="true" tabindex="-1"></a>  agg <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">split</span>(x, x<span class="sc">$</span>focal_population), <span class="cf">function</span>(p) {</span>
+<span id="cb19-421"><a href="#cb19-421" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb19-422"><a href="#cb19-422" aria-hidden="true" tabindex="-1"></a>      <span class="at">focal_population =</span> p<span class="sc">$</span>focal_population[<span class="dv">1</span>],</span>
+<span id="cb19-423"><a href="#cb19-423" aria-hidden="true" tabindex="-1"></a>      <span class="at">cooccur =</span> p<span class="sc">$</span>cooccur[<span class="dv">1</span>],</span>
+<span id="cb19-424"><a href="#cb19-424" aria-hidden="true" tabindex="-1"></a>      <span class="at">mean =</span> <span class="fu">mean</span>(p<span class="sc">$</span>acoustic_distance),</span>
+<span id="cb19-425"><a href="#cb19-425" aria-hidden="true" tabindex="-1"></a>      <span class="at">se =</span> <span class="fu">sd</span>(p<span class="sc">$</span>acoustic_distance) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">nrow</span>(p))</span>
+<span id="cb19-426"><a href="#cb19-426" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb19-427"><a href="#cb19-427" aria-hidden="true" tabindex="-1"></a>  }))</span>
+<span id="cb19-428"><a href="#cb19-428" aria-hidden="true" tabindex="-1"></a>  agg<span class="sc">$</span>comparison <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm)</span>
+<span id="cb19-429"><a href="#cb19-429" aria-hidden="true" tabindex="-1"></a>  agg</span>
+<span id="cb19-430"><a href="#cb19-430" aria-hidden="true" tabindex="-1"></a>}))</span>
 <span id="cb19-431"><a href="#cb19-431" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-432"><a href="#cb19-432" aria-hidden="true" tabindex="-1"></a>shift_tab_complex <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(shift_models_complex), <span class="cf">function</span>(nm) {</span>
-<span id="cb19-433"><a href="#cb19-433" aria-hidden="true" tabindex="-1"></a>  fe <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">fixef</span>(shift_models_complex[[nm]]))[<span class="st">"cooccur1"</span>, ]</span>
-<span id="cb19-434"><a href="#cb19-434" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
-<span id="cb19-435"><a href="#cb19-435" aria-hidden="true" tabindex="-1"></a>    <span class="at">Comparison =</span> <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm),</span>
-<span id="cb19-436"><a href="#cb19-436" aria-hidden="true" tabindex="-1"></a>    <span class="at">Estimate =</span> <span class="fu">round</span>(fe<span class="sc">$</span>Estimate, <span class="dv">3</span>),</span>
-<span id="cb19-437"><a href="#cb19-437" aria-hidden="true" tabindex="-1"></a>    <span class="at">SE =</span> <span class="fu">round</span>(fe<span class="sc">$</span>Est.Error, <span class="dv">3</span>),</span>
-<span id="cb19-438"><a href="#cb19-438" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">l-95% UI</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(fe<span class="sc">$</span>Q2<span class="fl">.5</span>, <span class="dv">3</span>),</span>
-<span id="cb19-439"><a href="#cb19-439" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">u-95% UI</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(fe<span class="sc">$</span>Q97<span class="fl">.5</span>, <span class="dv">3</span>),</span>
-<span id="cb19-440"><a href="#cb19-440" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">UI excludes 0</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">ifelse</span>(fe<span class="sc">$</span>Q2<span class="fl">.5</span> <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">|</span> fe<span class="sc">$</span>Q97<span class="fl">.5</span> <span class="sc">&lt;</span> <span class="dv">0</span>, <span class="st">"yes"</span>, <span class="st">"no"</span>),</span>
-<span id="cb19-441"><a href="#cb19-441" aria-hidden="true" tabindex="-1"></a>    <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
-<span id="cb19-442"><a href="#cb19-442" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb19-443"><a href="#cb19-443" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb19-432"><a href="#cb19-432" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(shift_plot_dat_complex, <span class="fu">aes</span>(<span class="at">x =</span> focal_population, <span class="at">y =</span> mean, <span class="at">color =</span> cooccur)) <span class="sc">+</span></span>
+<span id="cb19-433"><a href="#cb19-433" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> mean <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> se, <span class="at">ymax =</span> mean <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> se), <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb19-434"><a href="#cb19-434" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> comparison, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb19-435"><a href="#cb19-435" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_d</span>(<span class="at">option =</span> <span class="st">"mako"</span>, <span class="at">begin =</span> <span class="fl">0.3</span>, <span class="at">end =</span> <span class="fl">0.7</span>,</span>
+<span id="cb19-436"><a href="#cb19-436" aria-hidden="true" tabindex="-1"></a>                        <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0"</span> <span class="ot">=</span> <span class="st">"No"</span>, <span class="st">"1"</span> <span class="ot">=</span> <span class="st">"Yes"</span>),</span>
+<span id="cb19-437"><a href="#cb19-437" aria-hidden="true" tabindex="-1"></a>                        <span class="at">name =</span> <span class="st">"Co-occurs</span><span class="sc">\n</span><span class="st">with congener"</span>) <span class="sc">+</span></span>
+<span id="cb19-438"><a href="#cb19-438" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Focal population"</span>, <span class="at">y =</span> <span class="st">"Acoustic distance to congener"</span>) <span class="sc">+</span></span>
+<span id="cb19-439"><a href="#cb19-439" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span>
+<span id="cb19-440"><a href="#cb19-440" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-441"><a href="#cb19-441" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-442"><a href="#cb19-442" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-443"><a href="#cb19-443" aria-hidden="true" tabindex="-1"></a>Co-occurrence effects (negative = focal populations living with the congener are closer to its song, i.e. convergence; positive = divergence):</span>
 <span id="cb19-444"><a href="#cb19-444" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-445"><a href="#cb19-445" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(shift_tab_complex)</span>
+<span id="cb19-445"><a href="#cb19-445" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift effects complex}</span></span>
 <span id="cb19-446"><a href="#cb19-446" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-447"><a href="#cb19-447" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb19-448"><a href="#cb19-448" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-449"><a href="#cb19-449" aria-hidden="true" tabindex="-1"></a>The same effects expressed relative to the typical difference among focal populations (<span class="in">`b_cooccur1 / sd(pop1)`</span>). Values near ±1 mean the co-occurrence shift is about as large as an ordinary between-population difference:</span>
-<span id="cb19-450"><a href="#cb19-450" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-451"><a href="#cb19-451" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift relative complex}</span></span>
-<span id="cb19-452"><a href="#cb19-452" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-453"><a href="#cb19-453" aria-hidden="true" tabindex="-1"></a>rel_tab_complex <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(shift_models_complex), <span class="cf">function</span>(nm) {</span>
-<span id="cb19-454"><a href="#cb19-454" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(</span>
-<span id="cb19-455"><a href="#cb19-455" aria-hidden="true" tabindex="-1"></a>    <span class="at">comparison =</span> <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm),</span>
-<span id="cb19-456"><a href="#cb19-456" aria-hidden="true" tabindex="-1"></a>    <span class="fu">shift_relative_to_population_sd</span>(shift_models_complex[[nm]])</span>
+<span id="cb19-447"><a href="#cb19-447" aria-hidden="true" tabindex="-1"></a>shift_tab_complex <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(shift_models_complex), <span class="cf">function</span>(nm) {</span>
+<span id="cb19-448"><a href="#cb19-448" aria-hidden="true" tabindex="-1"></a>  fe <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">fixef</span>(shift_models_complex[[nm]]))[<span class="st">"cooccur1"</span>, ]</span>
+<span id="cb19-449"><a href="#cb19-449" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb19-450"><a href="#cb19-450" aria-hidden="true" tabindex="-1"></a>    <span class="at">Comparison =</span> <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm),</span>
+<span id="cb19-451"><a href="#cb19-451" aria-hidden="true" tabindex="-1"></a>    <span class="at">Estimate =</span> <span class="fu">round</span>(fe<span class="sc">$</span>Estimate, <span class="dv">3</span>),</span>
+<span id="cb19-452"><a href="#cb19-452" aria-hidden="true" tabindex="-1"></a>    <span class="at">SE =</span> <span class="fu">round</span>(fe<span class="sc">$</span>Est.Error, <span class="dv">3</span>),</span>
+<span id="cb19-453"><a href="#cb19-453" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">l-95% UI</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(fe<span class="sc">$</span>Q2<span class="fl">.5</span>, <span class="dv">3</span>),</span>
+<span id="cb19-454"><a href="#cb19-454" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">u-95% UI</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(fe<span class="sc">$</span>Q97<span class="fl">.5</span>, <span class="dv">3</span>),</span>
+<span id="cb19-455"><a href="#cb19-455" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">UI excludes 0</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">ifelse</span>(fe<span class="sc">$</span>Q2<span class="fl">.5</span> <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">|</span> fe<span class="sc">$</span>Q97<span class="fl">.5</span> <span class="sc">&lt;</span> <span class="dv">0</span>, <span class="st">"yes"</span>, <span class="st">"no"</span>),</span>
+<span id="cb19-456"><a href="#cb19-456" aria-hidden="true" tabindex="-1"></a>    <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
 <span id="cb19-457"><a href="#cb19-457" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb19-458"><a href="#cb19-458" aria-hidden="true" tabindex="-1"></a>}))</span>
 <span id="cb19-459"><a href="#cb19-459" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-460"><a href="#cb19-460" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rel_tab_complex)</span>
+<span id="cb19-460"><a href="#cb19-460" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(shift_tab_complex)</span>
 <span id="cb19-461"><a href="#cb19-461" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-462"><a href="#cb19-462" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb19-463"><a href="#cb19-463" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-464"><a href="#cb19-464" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb19-465"><a href="#cb19-465" aria-hidden="true" tabindex="-1"></a><span class="fu">## Population shift model summaries</span></span>
-<span id="cb19-466"><a href="#cb19-466" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-467"><a href="#cb19-467" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift summaries complex}</span></span>
-<span id="cb19-468"><a href="#cb19-468" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: "asis"</span></span>
-<span id="cb19-469"><a href="#cb19-469" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-470"><a href="#cb19-470" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm <span class="cf">in</span> <span class="fu">names</span>(shift_models_complex)) {</span>
-<span id="cb19-471"><a href="#cb19-471" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-472"><a href="#cb19-472" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"##### "</span>, <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span>
-<span id="cb19-473"><a href="#cb19-473" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-474"><a href="#cb19-474" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extended_summary</span>(</span>
-<span id="cb19-475"><a href="#cb19-475" aria-hidden="true" tabindex="-1"></a>    shift_models_complex[[nm]],</span>
-<span id="cb19-476"><a href="#cb19-476" aria-hidden="true" tabindex="-1"></a>    <span class="at">highlight =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb19-477"><a href="#cb19-477" aria-hidden="true" tabindex="-1"></a>    <span class="at">trace.palette =</span> viridis<span class="sc">::</span>mako,</span>
-<span id="cb19-478"><a href="#cb19-478" aria-hidden="true" tabindex="-1"></a>    <span class="at">remove.intercepts =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb19-479"><a href="#cb19-479" aria-hidden="true" tabindex="-1"></a>    <span class="at">print.name =</span> <span class="cn">FALSE</span></span>
-<span id="cb19-480"><a href="#cb19-480" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb19-464"><a href="#cb19-464" aria-hidden="true" tabindex="-1"></a>The same effects expressed relative to the typical difference among focal populations (<span class="in">`b_cooccur1 / sd(pop1)`</span>). Values near ±1 mean the co-occurrence shift is about as large as an ordinary between-population difference:</span>
+<span id="cb19-465"><a href="#cb19-465" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-466"><a href="#cb19-466" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift relative complex}</span></span>
+<span id="cb19-467"><a href="#cb19-467" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-468"><a href="#cb19-468" aria-hidden="true" tabindex="-1"></a>rel_tab_complex <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(shift_models_complex), <span class="cf">function</span>(nm) {</span>
+<span id="cb19-469"><a href="#cb19-469" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(</span>
+<span id="cb19-470"><a href="#cb19-470" aria-hidden="true" tabindex="-1"></a>    <span class="at">comparison =</span> <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm),</span>
+<span id="cb19-471"><a href="#cb19-471" aria-hidden="true" tabindex="-1"></a>    <span class="fu">shift_relative_to_population_sd</span>(shift_models_complex[[nm]])</span>
+<span id="cb19-472"><a href="#cb19-472" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb19-473"><a href="#cb19-473" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb19-474"><a href="#cb19-474" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-475"><a href="#cb19-475" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rel_tab_complex)</span>
+<span id="cb19-476"><a href="#cb19-476" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-477"><a href="#cb19-477" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-478"><a href="#cb19-478" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-479"><a href="#cb19-479" aria-hidden="true" tabindex="-1"></a>::: {.alert .alert-info}</span>
+<span id="cb19-480"><a href="#cb19-480" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary {.unnumbered .unlisted}</span></span>
 <span id="cb19-481"><a href="#cb19-481" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-482"><a href="#cb19-482" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span>
-<span id="cb19-483"><a href="#cb19-483" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb19-484"><a href="#cb19-484" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-485"><a href="#cb19-485" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb19-486"><a href="#cb19-486" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb19-487"><a href="#cb19-487" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-488"><a href="#cb19-488" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- add packages used, system details and versions  --&gt;</span></span>
-<span id="cb19-489"><a href="#cb19-489" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-490"><a href="#cb19-490" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb19-491"><a href="#cb19-491" aria-hidden="true" tabindex="-1"></a><span class="fu">## Session information {.unnumbered .unlisted}</span></span>
-<span id="cb19-492"><a href="#cb19-492" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-493"><a href="#cb19-493" aria-hidden="true" tabindex="-1"></a><span class="in">```{r session info}</span></span>
-<span id="cb19-494"><a href="#cb19-494" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb19-495"><a href="#cb19-495" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-496"><a href="#cb19-496" aria-hidden="true" tabindex="-1"></a><span class="co"># if devtools is installed use devtools::session_info()</span></span>
-<span id="cb19-497"><a href="#cb19-497" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">requireNamespace</span>(<span class="st">"devtools"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) {</span>
-<span id="cb19-498"><a href="#cb19-498" aria-hidden="true" tabindex="-1"></a>  devtools<span class="sc">::</span><span class="fu">session_info</span>()</span>
-<span id="cb19-499"><a href="#cb19-499" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb19-500"><a href="#cb19-500" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sessionInfo</span>()</span>
-<span id="cb19-501"><a href="#cb19-501" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb19-502"><a href="#cb19-502" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb19-503"><a href="#cb19-503" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb19-482"><a href="#cb19-482" aria-hidden="true" tabindex="-1"></a><span class="fu">### Model summary {.unnumbered .unlisted}</span></span>
+<span id="cb19-483"><a href="#cb19-483" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-484"><a href="#cb19-484" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>As for simple songs, only *Ruficollis* vs. *Hypoxantha* and *Hypoxantha* vs. *Ruficollis* are testable. Neither co-occurrence effect is credible (*Ruficollis* vs. *Hypoxantha*: -0.346 SD, 95% CI [-0.980, 0.516]; *Hypoxantha* vs. *Ruficollis*: 0.052 SD, 95% CI <span class="co">[</span><span class="ot">-0.537, 0.576</span><span class="co">]</span>), and both models converged cleanly (Rhat = 1, divergent transitions below 1% in both).</span>
+<span id="cb19-485"><a href="#cb19-485" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Relative to the typical between-population difference, both estimates are again extremely imprecise (*Ruficollis* vs. *Hypoxantha*: -1.450, 95% CI [-51.529, 0.908]; *Hypoxantha* vs. *Ruficollis*: 0.379, 95% CI <span class="co">[</span><span class="ot">-4.070, 18.238</span><span class="co">]</span>).</span>
+<span id="cb19-486"><a href="#cb19-486" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-487"><a href="#cb19-487" aria-hidden="true" tabindex="-1"></a><span class="fu">### Interpretation {.unnumbered .unlisted}</span></span>
+<span id="cb19-488"><a href="#cb19-488" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-489"><a href="#cb19-489" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>As with simple songs, Step 3 provides no credible evidence of population-level convergence or divergence for complex songs, but this is a statement about statistical power (one testable species pair, few populations) rather than about biology.</span>
+<span id="cb19-490"><a href="#cb19-490" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Unlike the simple-song *Hypoxantha* vs. *Ruficollis* model, both complex-song models converged cleanly, so these null results are not undermined by sampling problems — they are genuinely uninformative given the data available, not masked by a convergence failure.</span>
+<span id="cb19-491"><a href="#cb19-491" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Taken together with Step 2, the strongest and best-supported evidence for sound-based character displacement in this system remains the heterospecific sympatric-vs-allopatric contrast (Step 2), not the population-shift framing used here, which is limited by how few species pairs have the co-occurrence structure needed to test it.</span>
+<span id="cb19-492"><a href="#cb19-492" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb19-493"><a href="#cb19-493" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-494"><a href="#cb19-494" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb19-495"><a href="#cb19-495" aria-hidden="true" tabindex="-1"></a><span class="fu">## Population shift model summaries</span></span>
+<span id="cb19-496"><a href="#cb19-496" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-497"><a href="#cb19-497" aria-hidden="true" tabindex="-1"></a><span class="in">```{r population shift summaries complex}</span></span>
+<span id="cb19-498"><a href="#cb19-498" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: "asis"</span></span>
+<span id="cb19-499"><a href="#cb19-499" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-500"><a href="#cb19-500" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm <span class="cf">in</span> <span class="fu">names</span>(shift_models_complex)) {</span>
+<span id="cb19-501"><a href="#cb19-501" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-502"><a href="#cb19-502" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"##### "</span>, <span class="fu">gsub</span>(<span class="st">"_vs_"</span>, <span class="st">" vs. "</span>, nm), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span>
+<span id="cb19-503"><a href="#cb19-503" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-504"><a href="#cb19-504" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extended_summary</span>(</span>
+<span id="cb19-505"><a href="#cb19-505" aria-hidden="true" tabindex="-1"></a>    shift_models_complex[[nm]],</span>
+<span id="cb19-506"><a href="#cb19-506" aria-hidden="true" tabindex="-1"></a>    <span class="at">highlight =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb19-507"><a href="#cb19-507" aria-hidden="true" tabindex="-1"></a>    <span class="at">trace.palette =</span> viridis<span class="sc">::</span>mako,</span>
+<span id="cb19-508"><a href="#cb19-508" aria-hidden="true" tabindex="-1"></a>    <span class="at">remove.intercepts =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb19-509"><a href="#cb19-509" aria-hidden="true" tabindex="-1"></a>    <span class="at">print.name =</span> <span class="cn">FALSE</span></span>
+<span id="cb19-510"><a href="#cb19-510" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb19-511"><a href="#cb19-511" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-512"><a href="#cb19-512" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span>
+<span id="cb19-513"><a href="#cb19-513" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-514"><a href="#cb19-514" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-515"><a href="#cb19-515" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-516"><a href="#cb19-516" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb19-517"><a href="#cb19-517" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-518"><a href="#cb19-518" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- add packages used, system details and versions  --&gt;</span></span>
+<span id="cb19-519"><a href="#cb19-519" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-520"><a href="#cb19-520" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb19-521"><a href="#cb19-521" aria-hidden="true" tabindex="-1"></a><span class="fu">## Session information {.unnumbered .unlisted}</span></span>
+<span id="cb19-522"><a href="#cb19-522" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-523"><a href="#cb19-523" aria-hidden="true" tabindex="-1"></a><span class="in">```{r session info}</span></span>
+<span id="cb19-524"><a href="#cb19-524" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb19-525"><a href="#cb19-525" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-526"><a href="#cb19-526" aria-hidden="true" tabindex="-1"></a><span class="co"># if devtools is installed use devtools::session_info()</span></span>
+<span id="cb19-527"><a href="#cb19-527" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">requireNamespace</span>(<span class="st">"devtools"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb19-528"><a href="#cb19-528" aria-hidden="true" tabindex="-1"></a>  devtools<span class="sc">::</span><span class="fu">session_info</span>()</span>
+<span id="cb19-529"><a href="#cb19-529" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb19-530"><a href="#cb19-530" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sessionInfo</span>()</span>
+<span id="cb19-531"><a href="#cb19-531" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-532"><a href="#cb19-532" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb19-533"><a href="#cb19-533" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
