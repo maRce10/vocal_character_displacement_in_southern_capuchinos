@@ -12,9 +12,9 @@ execute:
   freeze: auto
 
 website:
-  title: "Vocal character displacement in southern capuchinos"
-  site-url: https://marce10.github.io/vocal-character-displacement-capuchinos/
-  repo-url: https://github.com/maRce10/vocal-character-displacement-capuchinos
+  title: "Vocal character displacement</br>in southern capuchinos"
+  site-url: https://marce10.github.io/vocal_character_displacement_in_southern_capuchinos/
+  repo-url: https://github.com/maRce10/vocal_character_displacement_in_southern_capuchinos
   page-navigation: true
   navbar:
     background: "#ffffff"
@@ -32,7 +32,7 @@ website:
         text: 3. Population shifts
     right:
       - icon: github
-        href: https://github.com/maRce10/vocal-character-displacement-capuchinos
+        href: https://github.com/maRce10/vocal_character_displacement_in_southern_capuchinos
         aria-label: GitHub repository
 
 format:

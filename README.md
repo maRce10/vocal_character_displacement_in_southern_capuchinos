@@ -1,18 +1,18 @@
 # Vocal character displacement in southern capuchinos
 
-[![Website](https://img.shields.io/badge/website-analysis%20reports-408AB4)](https://marce10.github.io/vocal-character-displacement-capuchinos/)
-[![Publish website](https://github.com/maRce10/vocal-character-displacement-capuchinos/actions/workflows/publish.yml/badge.svg)](https://github.com/maRce10/vocal-character-displacement-capuchinos/actions/workflows/publish.yml)
+[![Website](https://img.shields.io/badge/website-analysis%20reports-408AB4)](https://marce10.github.io/vocal_character_displacement_in_southern_capuchinos/)
+[![Publish website](https://github.com/maRce10/vocal_character_displacement_in_southern_capuchinos/actions/workflows/publish.yml/badge.svg)](https://github.com/maRce10/vocal_character_displacement_in_southern_capuchinos/actions/workflows/publish.yml)
 
 Code and data for the analysis of vocal character displacement in southern capuchino seedeaters (*Sporophila* spp.). We evaluate whether songs of different species are more or less divergent in sympatry than in allopatry, how much each species' song varies across its range, and which species' populations shifted where they live with congeners. Simple and complex songs are analyzed separately.
 
 ## Website
 
-The rendered analysis reports, with all code, results and figures, are available at **[marce10.github.io/vocal-character-displacement-capuchinos](https://marce10.github.io/vocal-character-displacement-capuchinos/)**:
+The rendered analysis reports, with all code, results and figures, are available at **[marce10.github.io/vocal_character_displacement_in_southern_capuchinos](https://marce10.github.io/vocal_character_displacement_in_southern_capuchinos/)**:
 
-- [Data preparation](https://marce10.github.io/vocal-character-displacement-capuchinos/scripts/0_data_preparation.html): PCA of element- and song-level acoustic features and pairwise acoustic and geographic distances
-- [Step 1: Population structure](https://marce10.github.io/vocal-character-displacement-capuchinos/scripts/1_population_structure.html): within- vs. between-population song variation and isolation by distance
-- [Step 2: Sympatry](https://marce10.github.io/vocal-character-displacement-capuchinos/scripts/2_sympatry_and_heterospecific_distances.html): acoustic distance between heterospecific songs in sympatry vs. allopatry
-- [Step 3: Population shifts](https://marce10.github.io/vocal-character-displacement-capuchinos/scripts/3_population_shifts.html): whether populations that co-occur with a congener are shifted towards or away from its song
+- [Data preparation](https://marce10.github.io/vocal_character_displacement_in_southern_capuchinos/scripts/0_data_preparation.html): PCA of element- and song-level acoustic features and pairwise acoustic and geographic distances
+- [Step 1: Population structure](https://marce10.github.io/vocal_character_displacement_in_southern_capuchinos/scripts/1_population_structure.html): within- vs. between-population song variation and isolation by distance
+- [Step 2: Sympatry](https://marce10.github.io/vocal_character_displacement_in_southern_capuchinos/scripts/2_sympatry_and_heterospecific_distances.html): acoustic distance between heterospecific songs in sympatry vs. allopatry
+- [Step 3: Population shifts](https://marce10.github.io/vocal_character_displacement_in_southern_capuchinos/scripts/3_population_shifts.html): whether populations that co-occur with a congener are shifted towards or away from its song
 
 ## Repository structure
 

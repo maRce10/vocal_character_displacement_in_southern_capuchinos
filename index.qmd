@@ -17,10 +17,17 @@ The analysis starts with a [data preparation](scripts/0_data_preparation.qmd) re
 
 Step 3 can only be tested for hypoxantha and ruficollis relative to each other, because iberaensis and palustris were recorded at a single locality. It rests on very few populations per contrast (2 vs. 2 for ruficollis, 1 vs. 2 for hypoxantha), and single-site contrasts are confounded with anything else particular to that locality. It is therefore presented as supporting evidence, and the size of any co-occurrence shift is compared with ordinary between-population differences.
 
+::: {.alert .alert-info}
+
 ## Main results
 
-*To be written after the models are fitted.*
+-   **Population structure (Step 1).** Simple songs are population-structured in both testable species, more strongly in *Ruficollis* than in *Hypoxantha*. Complex songs show little to no structuring in *Hypoxantha* and weaker structuring than simple songs in *Ruficollis*. Neither song type shows a clear isolation-by-distance signal, so this local structure is not simply accumulating with geographic distance.
+-   **Sympatry (Step 2).** Simple heterospecific songs are credibly more divergent in sympatry than in allopatry, and consistently so across all three testable species pairs — the pattern predicted by sound-based character displacement. Complex songs show the same direction of effect but far weaker overall, driven mainly by one species pair (*Hypoxantha*-*Palustris*); at the trait level, complex-song divergence in sympatry is a mosaic, with element-level acoustic distance, gap duration, frequency range and element diversity increasing in sympatry while peak frequency and song rate actually *converge*.
+-   **Population shifts (Step 3).** No credible population-level shifts (convergence or divergence) were detected for either song type. Only one species pair (*Hypoxantha* vs. *Ruficollis*) has enough co-occurrence structure to test, so this null result reflects very limited statistical power rather than evidence against a shift.
+-   Overall, the clearest and best-supported evidence for character displacement in this system is the simple-song sympatry effect in Step 2; complex songs and the population-shift framing provide weaker, more qualified support.
+
+:::
 
 ## Reproducibility
 
-All code and data are available in the [GitHub repository](https://github.com/maRce10/vocal-character-displacement-capuchinos). See the repository README for the folder structure and for files not hosted on GitHub.
+All code and data are available in the [GitHub repository](https://github.com/maRce10/vocal_character_displacement_in_southern_capuchinos). See the repository README for the folder structure and for files not hosted on GitHub.

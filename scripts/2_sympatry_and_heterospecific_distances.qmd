@@ -649,7 +649,7 @@ priors <- c(
   prior(exponential(1), class = "sigma")
 )
 
-for (resp in rev(distance_vars_sc)) {
+for (resp in distance_vars_sc) {
 
   cat("\n=============================\n")
   cat("Fitting:", resp, "\n")
