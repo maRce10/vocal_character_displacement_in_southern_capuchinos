@@ -1,1 +1,1 @@
-Sitemap: https://marce10.github.io/vocal-character-displacement-capuchinos/sitemap.xml
+Sitemap: https://marce10.github.io/vocal_character_displacement_in_southern_capuchinos/sitemap.xml
