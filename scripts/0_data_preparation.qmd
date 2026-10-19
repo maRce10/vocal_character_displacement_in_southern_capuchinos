@@ -769,7 +769,7 @@ dist_acoustic_long$species_pair <- factor(dist_acoustic_long$species_pair)
 
 ### Pairwise data for the analysis steps
 
-The sympatry models (Step 2) use only heterospecific pairs, while Steps 1 and 3 also need conspecific pairs, so all song pairs are rebuilt here. Objects that are re-created for complex songs (`dist_acoustic_long`, `pcs`) are stored with a song-type suffix.
+The sympatry models (Step 2) use only heterospecific pairs, while Steps 1 and 3 also need conspecific pairs, so all song pairs are rebuilt here. Objects that are re-created for complex songs (`dist_acoustic_long`, `pcs`) are stored with a song-type suffix. Each song pair also gets the eight per-feature distances used in the Step 2 per-feature models.
 
 ```{r song type copies simple}
 
@@ -780,7 +780,15 @@ pcs_simple <- pcs
 
 ```{r all song pairs simple}
 
-pairs_simple <- all_song_pairs(df = df_clean_simple, pcs = pcs_simple)
+# also adds the per-feature distances used in the Step 2 per-feature models
+# (absolute differences of song-level features and element-level PCA
+# distance), so Step 1 can model the same features
+pairs_simple <- all_song_pairs(
+  df = df_clean_simple,
+  pcs = pcs_simple,
+  features = song_feature_distances,
+  elm_dist = dist_elm_mat
+)
 
 occ_simple <- species_occurrence(df_clean_simple)
 
@@ -1450,7 +1458,7 @@ dist_acoustic_long$species_pair <- factor(dist_acoustic_long$species_pair)
 
 ### Pairwise data for the analysis steps
 
-The sympatry models (Step 2) use only heterospecific pairs, while Steps 1 and 3 also need conspecific pairs, so all song pairs are rebuilt here. Objects that are re-created for complex songs (`dist_acoustic_long`, `pcs`) are stored with a song-type suffix.
+The sympatry models (Step 2) use only heterospecific pairs, while Steps 1 and 3 also need conspecific pairs, so all song pairs are rebuilt here. Objects that are re-created for complex songs (`dist_acoustic_long`, `pcs`) are stored with a song-type suffix. Each song pair also gets the eight per-feature distances used in the Step 2 per-feature models.
 
 ```{r song type copies complex}
 
@@ -1461,7 +1469,15 @@ pcs_complex <- pcs
 
 ```{r all song pairs complex}
 
-pairs_complex <- all_song_pairs(df = df_clean_complex, pcs = pcs_complex)
+# also adds the per-feature distances used in the Step 2 per-feature models
+# (absolute differences of song-level features and element-level PCA
+# distance), so Step 1 can model the same features
+pairs_complex <- all_song_pairs(
+  df = df_clean_complex,
+  pcs = pcs_complex,
+  features = song_feature_distances,
+  elm_dist = dist_elm_mat
+)
 
 occ_complex <- species_occurrence(df_clean_complex)
 
@@ -1489,7 +1505,7 @@ ps_dat_complex <- population_structure_data(pairs_complex)
 The pairwise data sets used by each analysis step are saved here, so each step report can be rendered on its own:
 
 -   `dist_acoustic_long`: heterospecific song pairs with PCA-based and per-feature acoustic distances (Step 2)
--   `ps_dat`: conspecific song pairs from different individuals (Step 1)
+-   `ps_dat`: conspecific song pairs from different individuals, with PCA-based and per-feature acoustic distances (Step 1)
 -   `pairs`: heterospecific song pairs with PCA-based acoustic distance and geographic distance (Step 3)
 -   `occ`: populations (localities) in which each species was sampled (Steps 1 and 3)
 

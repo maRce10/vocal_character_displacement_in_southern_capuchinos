@@ -168,6 +168,9 @@ The coefficient for sympatry in this model represents the difference in acoustic
 
 Prepare data for modeling by restricting to species pairs with both sympatric and allopatric comparisons and creating appropriate random effect structures.
 
+::: {.callout-note collapse="true"}
+##### Species and population tables
+
 Species by location:
 
 ```{r}
@@ -271,6 +274,7 @@ for(p in pairs) {
 
 print(results)
 ```
+:::
 
 Only three species pairs were kept: `r paste(keep_pairs, collapse = ", ")`
 
@@ -420,6 +424,13 @@ The sampler produced divergent transitions in this model. Divergences mark regio
 
 div_simple <- divergence_check(sympatry_model_simple)
 
+```
+
+::: {.callout-note collapse="true"}
+##### Divergence diagnostic tables
+
+```{r divergences simple tables}
+
 print(div_simple$summary)
 
 print(div_simple$sd)
@@ -427,6 +438,7 @@ print(div_simple$sd)
 print(div_simple$fixef)
 
 ```
+:::
 
 ::: {.alert .alert-info}
 ##### Summary {.unnumbered .unlisted}
@@ -439,106 +451,7 @@ print(div_simple$fixef)
 ###### Interpretation {.unnumbered .unlisted}
 
 -   Simple songs of heterospecific pairs are more acoustically different where the species co-occur than where they do not — the signature predicted by sound-based character displacement (selection against acoustic confusion in sympatry, e.g. via reproductive interference or mistaken aggression).
--   As detailed in the species-pair breakdown below, this pattern is not an artifact of one species pair dominating the pooled estimate: all three heterospecific pairs individually show a credible positive sympatry effect, though its magnitude differs between pairs.
 :::
-
-##### Contrasts by species pair
-
-The model above estimates a single sympatry effect for all species pairs; species pair enters only as a varying intercept, which shifts sympatric and allopatric comparisons by the same amount and therefore cannot tell whether the effect is shared by all pairs or driven by one of them. To obtain a separate sympatry effect for each species pair, the model is refitted with species-pair-specific sympatry slopes (a varying slope of sympatry by species pair, correlated with the varying intercept, with an LKJ(2) prior on the correlation). The per-pair effect is the fixed sympatry effect plus the pair's deviation; the pairwise differences between species pairs are computed from the posterior draws. With only three species pairs the between-pair standard deviation of the sympatry slope, and its correlation with the intercept, are weakly informed by the data and lean on the priors; the per-pair effects are partially pooled towards the overall effect, so they should be read as shrunken estimates rather than as three independent fits. The fitting chunk is not evaluated when rendering (it takes as long as the main model); run it once and the results are loaded from the saved fit.
-
-```{r species pair slopes fit simple}
-#| eval: false
-
-priors_sp <- c(
-  priors,
-  prior(lkj(2), class = "cor")
-)
-
-sympatry_by_species_pair_simple <- brm(
-  acoustic_distance_sc ~ sympatry +
-    (1 + sympatry | species_pair) +
-    (1 | mm(pop1, pop2)) +
-    (1 | mm(individual1, individual2)),
-  data = sympatric_pairs_simple,
-  family = gaussian(),
-  prior = priors_sp,
-  cores = 4,
-  chains = 4,
-  iter = 10000,
-  backend = "cmdstanr",
-  threads = threading(8),
-  control = list(adapt_delta = 0.95, max_treedepth = 15),
-  file = "./data/processed/fits/acoustic_distance_sympatry_only_by_species_pair_simple_fit"
-)
-
-```
-
-```{r species pair contrasts simple}
-#| fig-height: 3
-
-sp_fit_file <- "./data/processed/fits/acoustic_distance_sympatry_only_by_species_pair_simple_fit.rds"
-
-if (file.exists(sp_fit_file)) {
-
-  sympatry_by_species_pair_simple <- readRDS(sp_fit_file)
-
-  sp_contrasts_simple <- species_pair_sympatry_effects(sympatry_by_species_pair_simple)
-
-  base::print(sp_contrasts_simple$plot)
-
-} else {
-  message("Species-pair slope model not fitted yet - run the chunk above first.")
-}
-
-```
-
-```{r species pair contrast tables simple}
-
-if (exists("sp_contrasts_simple")) print(sp_contrasts_simple$effects)
-
-```
-
-```{r species pair difference tables simple}
-
-if (exists("sp_contrasts_simple")) print(sp_contrasts_simple$differences)
-
-```
-
-```{r species pair slopes summary simple}
-#| results: "asis"
-
-if (exists("sympatry_by_species_pair_simple")) {
-  extended_summary(
-    sympatry_by_species_pair_simple,
-    highlight = TRUE,
-    trace.palette = viridis::mako,
-    remove.intercepts = TRUE,
-    print.name = FALSE
-  )
-}
-
-```
-
-Population-pair contrasts from the species-pair slope model (same procedure as in the next section, but each species pair now has its own sympatry effect):
-
-```{r species pair slopes population contrasts simple}
-#| fig-height: 7
-
-if (exists("sympatry_by_species_pair_simple")) {
-  pop_contrasts_sp_simple <- population_pair_contrasts(
-    fit = sympatry_by_species_pair_simple,
-    dat = sympatric_pairs_simple
-  )
-  base::print(pop_contrasts_sp_simple$plot)
-}
-
-```
-
-```{r species pair slopes population contrast table simple}
-
-if (exists("pop_contrasts_sp_simple")) print(pop_contrasts_sp_simple$contrasts)
-
-```
 
 ##### Contrasts among population pairs
 
@@ -556,6 +469,9 @@ base::print(pop_contrasts_simple$plot)
 
 ```
 
+::: {.callout-note collapse="true"}
+##### Population-pair contrast tables
+
 ```{r population pair expected table simple}
 
 print(pop_contrasts_simple$expected)
@@ -567,10 +483,11 @@ print(pop_contrasts_simple$expected)
 print(pop_contrasts_simple$contrasts)
 
 ```
+:::
 
 #### Feature-based acoustic distance
 
-The following plot summarizes the relationship between sympatry and acoustic divergence for each of the acoustic features used to calculate acoustic distance. The model was fit separately for each feature, and the estimated effect of sympatry on acoustic divergence is shown with 95% credible intervals. Rows correspond to individual acoustic traits and columns to the predictors included in the Bayesian mixed-effects models. Tile color represents the posterior mean regression coefficient (green = positive effect, purple = negative effect, white = no effect), while the numerical value within each tile indicates the estimated effect size. Models accounted for non-independence among pairwise comparisons by including multi-membership random effects for populations and individuals, as well as a random intercept for species pair.
+The model above was refitted separately for each acoustic feature used to calculate the overall PCA-based distance, with the same formula, random effects and priors; only the response changes. Results are summarized in a table of fixed-effect estimates below, and the sympatry effect for every feature (plus the PCA-based distance, for comparison) is combined into a single posterior-distribution plot at the end of this section.
 
 ```{r brms model by feature}
 
@@ -715,11 +632,14 @@ model_files <- grep(paste(distance_vars, collapse = "|"), model_files, value = T
 # would break that stricter match
 model_files <- grep("_sympatry_only", model_files, value = TRUE)
 
-plot_brms_heatmap(model_files = model_files)
+plot_posterior_distributions(model_files = model_files)
 
 ```
 
-The table below gives, for every trait-level model above, the posterior mean, standard error and 95% uncertainty interval of each predictor; the last column flags intervals that exclude zero. Like the heatmap, it only includes models whose fit file exists.
+The table below gives, for every trait-level model above, the posterior mean, standard error and 95% uncertainty interval of each predictor; the last column flags intervals that exclude zero. Like the plot above, it only includes models whose fit file exists.
+
+::: {.callout-note collapse="true"}
+##### Fixed-effect estimates table
 
 ```{r feature effects table simple}
 
@@ -728,6 +648,7 @@ fixef_tab_simple <- fixef_table(model_files)
 if (!is.null(fixef_tab_simple)) print(fixef_tab_simple)
 
 ```
+:::
 
 The expandable section below provides the complete Bayesian model summaries underlying those estimates, including posterior parameter estimates, uncertainty intervals, and convergence diagnostics.
 
@@ -800,6 +721,9 @@ for (i in model_files) {
 
 The same divergence diagnostics for every trait-level model that has finished fitting: number and percentage of divergent post-warmup draws, divergences per chain, draws that hit the maximum treedepth, the median sympatry coefficient in non-divergent vs divergent draws, and the mean percentile of the divergent draws within the posterior of the species-pair SD (values near 0 indicate divergences piled up at small SD values).
 
+::: {.callout-note collapse="true"}
+##### Divergence diagnostic table
+
 ```{r divergences by feature simple}
 
 div_tab_simple <- divergence_table(model_files)
@@ -807,6 +731,7 @@ div_tab_simple <- divergence_table(model_files)
 if (!is.null(div_tab_simple)) print(div_tab_simple)
 
 ```
+:::
 
 ##### Contrasts among population pairs, per feature
 
@@ -831,30 +756,42 @@ if (!is.null(pop_contrasts_by_feature_simple)) {
 
 ```
 
+::: {.callout-note collapse="true"}
+##### Population-pair contrast table, per feature
+
 ```{r population pair contrast table by feature simple}
 
 if (!is.null(pop_contrasts_by_feature_simple)) print(pop_contrasts_by_feature_simple$contrasts)
 
 ```
+:::
 
 ::: {.alert .alert-info}
 ##### Summary {.unnumbered .unlisted}
 
-*To be written after the sympatry-only models are fitted.*
+###### Model summary {.unnumbered .unlisted}
 
+-   Of the 8 trait-level models, 7 have credible sympatry effects. Element diversity/mst has the largest effect (0.555, 95% CI [0.533, 0.578]), followed by frequency range (0.470, 95% CI [0.446, 0.494]) and element-level PCA distance (0.392, 95% CI [0.372, 0.413]) — all roughly double the overall PCA-based model's 0.227. Number of elements (0.045, 95% CI [0.023, 0.068]) and song duration (0.044, 95% CI [0.021, 0.068]) are credibly positive but much smaller. Peak frequency (-0.067, 95% CI [-0.089, -0.046]) and song rate (-0.040, 95% CI [-0.059, -0.021]) are credibly *negative*. Gap duration (-0.011, 95% CI [-0.033, 0.012]) is the only feature without a credible effect.
+-   Divergent transitions stayed below 2.5% for every feature, and the sympatry coefficient is essentially unchanged between divergent and non-divergent draws in every model (e.g. numelms: 0.045 vs. 0.038; songduration: 0.044 vs. 0.052), so none of these conclusions hinge on the divergences.
+
+###### Interpretation {.unnumbered .unlisted}
+
+-   As with complex songs, the simple-song character-displacement signal is not uniform across the song: it is strongest in element diversity, frequency range and element-level acoustic detail — all well above the whole-song PCA-based effect — while the pacing-related features (number of elements, song duration) show only a modest effect and gap duration shows none.
+-   Peak frequency and song rate again *converge* in sympatry rather than diverge, mirroring the exact same two features that converged in complex songs (Step 2, complex-song feature results below). This cross-song-type consistency strengthens the case that it is not a fitting artifact: in both simple and complex songs, dominant frequency and song pace specifically become *more* similar where *Sporophila* species co-occur, while most other acoustic dimensions become more different. A plausible explanation is that frequency and rate are under convergent selection in sympatry (e.g. shared habitat acoustics, morphological convergence in body size, or use in interspecific territorial signalling) even as other traits diverge for species or mate recognition.
+-   Combined with the overall PCA-based result, this makes simple songs the clearest and most broadly distributed channel for sound-based character displacement in this system: most individual features diverge in sympatry, several more strongly than the omnibus PCA-based distance, with a consistent, biologically interpretable exception in frequency and pace.
 :::
 
-## Combined results heatmap
+## Combined results: posterior distributions
 
-The heatmap below combines every simple-song model fitted so far - the song-level PCA-distance model and every per-feature model, including `elm_pca_distance` - into a single view. Since models may still be running in the background, this only plots whichever fits have already been saved; it updates automatically as more finish, and produces no error if some (or all) are still missing.
+The plot below combines every simple-song model fitted so far - the song-level PCA-distance model and every per-feature model, including `elm_pca_distance` - into a single view of the sympatry effect's full posterior distribution (density, median and 95% credible interval), rather than collapsing each model to a single number. Since models may still be running in the background, this only plots whichever fits have already been saved; it updates automatically as more finish, and produces no error if some (or all) are still missing.
 
-```{r combined heatmap simple}
-#| results: "asis"
+```{r combined posteriors simple}
+#| fig-height: 6
 
 # combine every simple-song fit (main song-level model + all per-feature
-# models) into a single heatmap; safe to run at any point while models
-# are still fitting, since plot_brms_heatmap() skips missing/unreadable
-# files rather than erroring
+# models) into a single plot; safe to run at any point while models are
+# still fitting, since plot_posterior_distributions() skips
+# missing/unreadable files rather than erroring
 
 model_files_simple <- list.files(
   "./data/processed/fits",
@@ -868,7 +805,7 @@ model_files_simple <- grep("simple", model_files_simple, value = TRUE)
 model_files_simple <- grep("sympatry_only_simple_fit", model_files_simple, value = TRUE)
 model_files_simple <- grep("by_species_pair|prior_only", model_files_simple, value = TRUE, invert = TRUE)
 
-plot_brms_heatmap(model_files = model_files_simple)
+plot_posterior_distributions(model_files = model_files_simple)
 
 ```
 
@@ -1170,6 +1107,13 @@ The sampler produced divergent transitions in this model. Divergences mark regio
 
 div_complex <- divergence_check(sympatry_model_complex)
 
+```
+
+::: {.callout-note collapse="true"}
+##### Divergence diagnostic tables
+
+```{r divergences complex tables}
+
 print(div_complex$summary)
 
 print(div_complex$sd)
@@ -1177,6 +1121,7 @@ print(div_complex$sd)
 print(div_complex$fixef)
 
 ```
+:::
 
 ::: {.alert .alert-info}
 ##### Summary {.unnumbered .unlisted}
@@ -1188,107 +1133,8 @@ print(div_complex$fixef)
 
 ###### Interpretation {.unnumbered .unlisted}
 
--   Complex songs show the same qualitative sign of character displacement as simple songs (greater divergence in sympatry) but a much weaker pooled signal.
--   The species-pair breakdown below shows this weak pooled effect is driven almost entirely by one pair (*Hypoxantha*-*Palustris*); the other two heterospecific pairs show no credible sympatry effect for complex songs, unlike simple songs where all three pairs diverged credibly. Complex songs therefore appear to be a less general channel for sound-based character displacement in this system than simple songs.
+-   Complex songs show the same qualitative sign of character displacement as simple songs (greater divergence in sympatry) but a much weaker pooled signal, suggesting complex songs are a less general channel for sound-based character displacement in this system than simple songs.
 :::
-
-##### Contrasts by species pair
-
-The model above estimates a single sympatry effect for all species pairs; species pair enters only as a varying intercept, which shifts sympatric and allopatric comparisons by the same amount and therefore cannot tell whether the effect is shared by all pairs or driven by one of them. To obtain a separate sympatry effect for each species pair, the model is refitted with species-pair-specific sympatry slopes (a varying slope of sympatry by species pair, correlated with the varying intercept, with an LKJ(2) prior on the correlation). The per-pair effect is the fixed sympatry effect plus the pair's deviation; the pairwise differences between species pairs are computed from the posterior draws. With only three species pairs the between-pair standard deviation of the sympatry slope, and its correlation with the intercept, are weakly informed by the data and lean on the priors; the per-pair effects are partially pooled towards the overall effect, so they should be read as shrunken estimates rather than as three independent fits. The fitting chunk is not evaluated when rendering (it takes as long as the main model); run it once and the results are loaded from the saved fit.
-
-```{r species pair slopes fit complex}
-#| eval: false
-
-priors_sp <- c(
-  priors,
-  prior(lkj(2), class = "cor")
-)
-
-sympatry_by_species_pair_complex <- brm(
-  acoustic_distance_sc ~ sympatry +
-    (1 + sympatry | species_pair) +
-    (1 | mm(pop1, pop2)) +
-    (1 | mm(individual1, individual2)),
-  data = sympatric_pairs_complex,
-  family = gaussian(),
-  prior = priors_sp,
-  cores = 4,
-  chains = 4,
-  iter = 10000,
-  backend = "cmdstanr",
-  threads = threading(8),
-  control = list(adapt_delta = 0.95, max_treedepth = 15),
-  file = "./data/processed/fits/acoustic_distance_sympatry_only_by_species_pair_complex_fit"
-)
-
-```
-
-```{r species pair contrasts complex}
-#| fig-height: 3
-
-sp_fit_file <- "./data/processed/fits/acoustic_distance_sympatry_only_by_species_pair_complex_fit.rds"
-
-if (file.exists(sp_fit_file)) {
-
-  sympatry_by_species_pair_complex <- readRDS(sp_fit_file)
-
-  sp_contrasts_complex <- species_pair_sympatry_effects(sympatry_by_species_pair_complex)
-
-  base::print(sp_contrasts_complex$plot)
-
-} else {
-  message("Species-pair slope model not fitted yet - run the chunk above first.")
-}
-
-```
-
-```{r species pair contrast tables complex}
-
-if (exists("sp_contrasts_complex")) print(sp_contrasts_complex$effects)
-
-```
-
-```{r species pair difference tables complex}
-
-if (exists("sp_contrasts_complex")) print(sp_contrasts_complex$differences)
-
-```
-
-```{r species pair slopes summary complex}
-#| results: "asis"
-
-if (exists("sympatry_by_species_pair_complex")) {
-  extended_summary(
-    sympatry_by_species_pair_complex,
-    highlight = TRUE,
-    trace.palette = viridis::mako,
-    remove.intercepts = TRUE,
-    print.name = FALSE
-  )
-}
-
-```
-
-Population-pair contrasts from the species-pair slope model (same procedure as in the next section, but each species pair now has its own sympatry effect):
-
-```{r species pair slopes population contrasts complex}
-#| fig-height: 7
-
-if (exists("sympatry_by_species_pair_complex")) {
-  pop_contrasts_sp_complex <- population_pair_contrasts(
-    fit = sympatry_by_species_pair_complex,
-    dat = sympatric_pairs_complex
-  )
-  base::print(pop_contrasts_sp_complex$plot)
-}
-
-```
-
-```{r species pair slopes population contrast table complex}
-
-if (exists("pop_contrasts_sp_complex")) print(pop_contrasts_sp_complex$contrasts)
-
-```
 
 ##### Contrasts among population pairs
 
@@ -1320,7 +1166,7 @@ print(pop_contrasts_complex$contrasts)
 
 #### Feature-based acoustic distance
 
-The following plot summarizes the relationship between sympatry and acoustic divergence for each of the acoustic features used to calculate acoustic distance. The model was fit separately for each feature, and the estimated effect of sympatry on acoustic divergence is shown with 95% credible intervals. Rows correspond to individual acoustic traits and columns to the predictors included in the Bayesian mixed-effects models. Tile color represents the posterior mean regression coefficient (green = positive effect, purple = negative effect, white = no effect), while the numerical value within each tile indicates the estimated effect size. Models accounted for non-independence among pairwise comparisons by including multi-membership random effects for populations and individuals, as well as a random intercept for species pair.
+The model above was refitted separately for each acoustic feature used to calculate the overall PCA-based distance, with the same formula, random effects and priors; only the response changes. Results are summarized in a table of fixed-effect estimates below, and the sympatry effect for every feature (plus the PCA-based distance, for comparison) is combined into a single posterior-distribution plot at the end of this section.
 
 ```{r brms model by feature complex}
 
@@ -1452,7 +1298,7 @@ model_files <- grep(paste(distance_vars, collapse = "|"), model_files, value = T
 # between "distance" and "sympatry" and would break that stricter match
 model_files <- grep("_sympatry_only", model_files, value = TRUE)
 
-plot_brms_heatmap(model_files = model_files)
+plot_posterior_distributions(model_files = model_files)
 
 ```
 
@@ -1537,6 +1383,9 @@ for (i in model_files) {
 
 The same divergence diagnostics for every trait-level model that has finished fitting: number and percentage of divergent post-warmup draws, divergences per chain, draws that hit the maximum treedepth, the median sympatry coefficient in non-divergent vs divergent draws, and the mean percentile of the divergent draws within the posterior of the species-pair SD (values near 0 indicate divergences piled up at small SD values).
 
+::: {.callout-note collapse="true"}
+##### Divergence diagnostic table
+
 ```{r divergences by feature complex}
 
 div_tab_complex <- divergence_table(model_files)
@@ -1544,6 +1393,7 @@ div_tab_complex <- divergence_table(model_files)
 if (!is.null(div_tab_complex)) print(div_tab_complex)
 
 ```
+:::
 
 ##### Contrasts among population pairs, per feature
 
@@ -1568,11 +1418,15 @@ if (!is.null(pop_contrasts_by_feature_complex)) {
 
 ```
 
+::: {.callout-note collapse="true"}
+##### Population-pair contrast table, per feature
+
 ```{r population pair contrast table by feature complex}
 
 if (!is.null(pop_contrasts_by_feature_complex)) print(pop_contrasts_by_feature_complex$contrasts)
 
 ```
+:::
 
 ::: {.alert .alert-info}
 ##### Summary {.unnumbered .unlisted}
@@ -1589,17 +1443,17 @@ if (!is.null(pop_contrasts_by_feature_complex)) print(pop_contrasts_by_feature_c
 -   This convergence in frequency and rate is the opposite of classical character displacement and is more consistent with shared ecological/acoustic constraints in sympatry (e.g. adaptation to the same habitat acoustics, morphological convergence in body size, or selection on these particular features for interspecific territorial signalling) acting alongside divergence in other traits. Complex-song divergence in sympatry is therefore trait-specific rather than a wholesale shift of the song.
 :::
 
-## Combined results heatmap
+## Combined results: posterior distributions
 
-The heatmap below combines every complex-song model fitted so far - the song-level PCA-distance model and every per-feature model, including `elm_pca_distance` - into a single view. Since models may still be running in the background, this only plots whichever fits have already been saved; it updates automatically as more finish, and produces no error if some (or all) are still missing.
+The plot below combines every complex-song model fitted so far - the song-level PCA-distance model and every per-feature model, including `elm_pca_distance` - into a single view of the sympatry effect's full posterior distribution (density, median and 95% credible interval), rather than collapsing each model to a single number. Since models may still be running in the background, this only plots whichever fits have already been saved; it updates automatically as more finish, and produces no error if some (or all) are still missing.
 
-```{r combined heatmap complex}
-#| results: "asis"
+```{r combined posteriors complex}
+#| fig-height: 6
 
 # combine every complex-song fit (main song-level model + all
-# per-feature models) into a single heatmap; safe to run at any point
-# while models are still fitting, since plot_brms_heatmap() skips
-# missing/unreadable files rather than erroring
+# per-feature models) into a single plot; safe to run at any point
+# while models are still fitting, since plot_posterior_distributions()
+# skips missing/unreadable files rather than erroring
 
 model_files_complex <- list.files(
   "./data/processed/fits",
@@ -1613,7 +1467,7 @@ model_files_complex <- grep("complex", model_files_complex, value = TRUE)
 model_files_complex <- grep("sympatry_only_complex_fit", model_files_complex, value = TRUE)
 model_files_complex <- grep("by_species_pair|prior_only", model_files_complex, value = TRUE, invert = TRUE)
 
-plot_brms_heatmap(model_files = model_files_complex)
+plot_posterior_distributions(model_files = model_files_complex)
 
 ```
 

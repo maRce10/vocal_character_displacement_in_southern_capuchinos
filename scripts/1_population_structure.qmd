@@ -64,12 +64,12 @@ knitr::opts_chunk$set(
 # Purpose {.unnumbered .unlisted}
 
 -   Evaluate how much each species' song varies across its range
--   Test whether songs are more similar within than between populations, and whether acoustic distance increases with geographic distance (isolation by distance)
+-   Test whether songs are more similar within than between populations, and whether acoustic distance increases with geographic distance (isolation by distance), for the PCA-based acoustic distance and for each acoustic feature used in the sympatry models
 :::
 
 Do songs vary across each species' range, and is that variation organized by population? Here we compare songs of different individuals of the same species recorded in the same population with those recorded in different populations. If songs are population-structured, within-population pairs should be more similar (smaller acoustic distance) than between-population pairs. This also shows that there is local variation on which sympatry could act (Step 3).
 
-Acoustic distance is the same PCA-based Euclidean distance used in the sympatry models. Pairs of songs from the same individual are excluded.
+Acoustic distance is the same PCA-based Euclidean distance used in the sympatry models. Pairs of songs from the same individual are excluded. Both models are also fitted separately for each acoustic feature used in the per-feature sympatry models (Step 2).
 
 # Load packages and custom functions {.unnumbered .unlisted}
 
@@ -306,6 +306,198 @@ extended_summary(
 
 ```
 
+## Feature-based acoustic distance
+
+The two models above were refitted separately for each acoustic feature used in the per-feature sympatry models (Step 2): peak frequency, number of elements, song duration, song rate, gap duration, frequency range, element diversity (mst) and the element-level PCA distance. Each per-feature distance is the absolute difference between the two songs (Euclidean distance on song-averaged element-level PCs for `elm_pca`). As for the PCA-based distance, each response is standardized within its own model dataset, with the same formulas, random effects and regularizing priors. Because response and priors are on the same standardized scale, the prior predictive checks above also apply to these models. Pairs with a missing feature value (e.g. songs without element-level measurements) are dropped from that feature's models only.
+
+Range-wide variation by feature (mean between-population distance divided by mean within-population distance; values > 1 mean songs are population-structured for that feature):
+
+```{r feature ratio table simple}
+
+feature_vars_simple <- intersect(
+  c(names(song_feature_distances), "elm_pca_distance"),
+  names(ps_model_dat_simple)
+)
+
+feature_ratio_simple <- do.call(rbind, lapply(c("acoustic_distance", feature_vars_simple), function(v) {
+  do.call(rbind, lapply(split(ps_model_dat_simple, ps_model_dat_simple$species, drop = TRUE), function(s) {
+    data.frame(
+      feature = gsub("_distance$", "", v),
+      species = as.character(s$species[1]),
+      between_within_ratio = round(
+        mean(s[[v]][s$same_population == "0"], na.rm = TRUE) /
+          mean(s[[v]][s$same_population == "1"], na.rm = TRUE), 3)
+    )
+  }))
+}))
+
+print(reshape(feature_ratio_simple, idvar = "feature", timevar = "species", direction = "wide"))
+
+```
+
+```{r population structure models by feature simple}
+#| eval: false
+
+for (v in feature_vars_simple) {
+
+  resp <- paste0(v, "_sc")
+
+  cat("\n=============================\n")
+  cat("Fitting:", resp, "\n")
+  cat("=============================\n")
+
+  # within vs. between populations
+  dat <- ps_model_dat_simple[!is.na(ps_model_dat_simple[[v]]), ]
+  dat[[resp]] <- as.numeric(scale(dat[[v]]))
+
+  brm(
+    formula = bf(as.formula(paste0(
+      resp, " ~ species + species:same_population + ",
+      "(1 | mm(pop1, pop2)) + (1 | mm(individual1, individual2))"
+    ))),
+    data = dat,
+    family = gaussian(),
+    prior = priors_ws,
+    cores = 4,
+    chains = 4,
+    iter = 10000,
+    backend = "cmdstanr",
+    threads = threading(8),
+    control = list(adapt_delta = 0.95, max_treedepth = 15),
+    file = paste0("./data/processed/fits/", resp, "_population_structure_simple_fit")
+  )
+
+  # isolation by distance among populations
+  dat_ibd <- dat[dat$same_population == "0", ]
+  dat_ibd[[resp]] <- as.numeric(scale(dat_ibd[[v]]))
+  dat_ibd$geo_distance_sc <- as.numeric(scale(dat_ibd$geo_distance))
+
+  brm(
+    formula = bf(as.formula(paste0(
+      resp, " ~ species + species:geo_distance_sc + ",
+      "(1 | mm(pop1, pop2)) + (1 | mm(individual1, individual2))"
+    ))),
+    data = dat_ibd,
+    family = gaussian(),
+    prior = priors_ws,
+    cores = 4,
+    chains = 4,
+    iter = 10000,
+    backend = "cmdstanr",
+    threads = threading(8),
+    control = list(adapt_delta = 0.95, max_treedepth = 15),
+    file = paste0("./data/processed/fits/", resp, "_isolation_by_distance_simple_fit")
+  )
+}
+
+```
+
+```{r feature model files simple}
+
+# per-feature fits that have finished, preceded by the PCA-based fit for
+# comparison; missing files (models not yet fitted) are skipped
+ps_feature_files_simple <- c(
+  "./data/processed/fits/population_structure_simple_fit.rds",
+  paste0("./data/processed/fits/", feature_vars_simple, "_sc_population_structure_simple_fit.rds")
+)
+ps_feature_files_simple <- ps_feature_files_simple[file.exists(ps_feature_files_simple)]
+
+ibd_feature_files_simple <- c(
+  "./data/processed/fits/isolation_by_distance_simple_fit.rds",
+  paste0("./data/processed/fits/", feature_vars_simple, "_sc_isolation_by_distance_simple_fit.rds")
+)
+ibd_feature_files_simple <- ibd_feature_files_simple[file.exists(ibd_feature_files_simple)]
+
+```
+
+### Within vs. between populations, by feature
+
+Species-specific difference between within- and between-population pairs (`species:same_population1`, in SD units of each feature's distance; negative = songs more similar within populations). `acoustic` is the PCA-based model above, shown for comparison.
+
+```{r population structure effects by feature simple}
+#| fig-height: 6
+#| fig-width: 10
+
+ps_feature_tab_simple <- feature_effects_table(ps_feature_files_simple, term = "same_population1")
+
+plot_feature_effects(ps_feature_tab_simple, xlab = "Within- vs. between-population difference (SD)")
+
+if (!is.null(ps_feature_tab_simple)) print(ps_feature_tab_simple)
+
+```
+
+### Isolation by distance, by feature
+
+Species-specific slope of acoustic distance on geographic distance among populations (`species:geo_distance_sc`, both standardized; positive = more distant populations sing more differently). As for the PCA-based model, these slopes rest on very few population pairs and are descriptive.
+
+```{r isolation by distance effects by feature simple}
+#| fig-height: 6
+#| fig-width: 10
+
+ibd_feature_tab_simple <- feature_effects_table(ibd_feature_files_simple, term = "geo_distance_sc")
+
+plot_feature_effects(ibd_feature_tab_simple, xlab = "Isolation-by-distance slope (SD per SD)")
+
+if (!is.null(ibd_feature_tab_simple)) print(ibd_feature_tab_simple)
+
+```
+
+::: {.callout-note collapse="true"}
+### Per-feature model results
+
+```{r population structure feature summaries simple}
+#| results: "asis"
+
+for (i in c(ps_feature_files_simple[-1], ibd_feature_files_simple[-1])) {
+
+  cat("#### ", tools::file_path_sans_ext(basename(i)), "\n\n")
+
+  extended_summary(
+    read.file = i,
+    highlight = TRUE,
+    trace.palette = viridis::mako,
+    remove.intercepts = TRUE,
+    print.name = FALSE
+  )
+
+  cat("\n\n")
+}
+
+```
+:::
+
+::: {.callout-note collapse="true"}
+### Per-feature posterior predictive checks
+
+```{r population structure feature ppc simple}
+#| results: "asis"
+#| fig-height: 3.5
+
+for (i in c(ps_feature_files_simple[-1], ibd_feature_files_simple[-1])) {
+
+  fit <- tryCatch(readRDS(i), error = function(e) NULL)
+  if (is.null(fit)) next
+
+  model_name <- tools::file_path_sans_ext(basename(i))
+
+  cat("\n\n**", model_name, "**\n\n", sep = "")
+
+  # base::print - the document redefines print() as a kable wrapper
+  base::print(
+    pp_check(fit, type = "dens_overlay", ndraws = 50) +
+      labs(title = model_name)
+  )
+
+  cat("\n\n")
+
+  rm(fit)
+  invisible(gc(verbose = FALSE))
+}
+
+```
+:::
+
+
 ::: {.alert .alert-info}
 ## Summary {.unnumbered .unlisted}
 
@@ -313,12 +505,15 @@ extended_summary(
 
 -   Within-population pairs are credibly more similar than between-population pairs for *Hypoxantha* (species:same_population1 = -0.164 SD, 95% CI [-0.197, -0.131]) and, more strongly, for *Ruficollis* (-0.463 SD, 95% CI [-0.496, -0.430]) — roughly a three-fold larger effect. Both models converged cleanly (Rhat = 1, no credible-interval-crossing issues).
 -   The isolation-by-distance slope is not credible for *Hypoxantha* (-0.267 SD, 95% CI [-1.160, 0.631]) but is credible and negative for *Ruficollis* (-0.366 SD, 95% CI [-0.435, -0.295]). With only 3-6 independent population pairs per species, this estimate is informed by very little independent replication and should be read as descriptive.
+-   The per-feature within- vs. between-population models show *Ruficollis* population structure is pervasive: all 8 individual features (plus the PCA distance) are credible and negative, from -0.125 (gap duration) to -0.552 (element-level PCA). *Hypoxantha* is more selective: element-level PCA (-1.107), frequency range (-0.561), element diversity/mst (-0.755) and number of elements (-0.051) are credible and negative, gap duration (0.033) and peak frequency (0.038) are credible but tiny and in the *opposite* direction, and song duration/song rate are not credible.
+-   The per-feature isolation-by-distance models show the *Ruficollis* anti-IBD pattern is not specific to the PCA distance: 7 of 8 features (all but peak frequency) have a credible negative slope, ranging from -0.163 (number of elements) to -0.492 (song rate). For *Hypoxantha*, only element-level PCA distance is credible (-1.858, 95% CI [-2.793, -0.928]); every other feature is not credible, consistent with the null PCA-based result.
 
 ### Interpretation {.unnumbered .unlisted}
 
 -   Simple songs carry genuine, population-level geographic structure in both species with more than one population, confirming there is local song variation for sympatry to act on in Step 3.
--   The much stronger structuring in *Ruficollis* suggests either more restricted song learning/dispersal or more time for populations to diverge in that species than in *Hypoxantha*.
--   The negative, rather than positive, isolation-by-distance trend in *Ruficollis* indicates that this population structure is not simply accumulating with geographic distance as under neutral drift — distant populations are not more acoustically different than nearby ones. This is consistent with song divergence being driven by local factors (habitat acoustics, drift in small founder populations, or selective pressures such as sympatry with congeners) rather than by isolation by distance per se, though the small number of population pairs means this should be treated as a hypothesis for the sympatry-focused steps rather than a confirmed result.
+-   The much stronger structuring in *Ruficollis* suggests either more restricted song learning/dispersal or more time for populations to diverge in that species than in *Hypoxantha*. That this structuring shows up consistently across all 8 independent acoustic features, not just the omnibus PCA distance, strengthens confidence that it is a real biological signal rather than an artifact of how the multivariate distance was built.
+-   In *Hypoxantha*, population structure is concentrated in spectral/element-level features (element-level PCA distance, frequency range, element diversity) rather than temporal pacing (song duration, song rate, gap duration), hinting that different song components may be governed by different processes — e.g. spectral traits more free to drift or locally adapt, pacing more canalized.
+-   The negative, rather than positive, isolation-by-distance trend in *Ruficollis* indicates that this population structure is not simply accumulating with geographic distance as under neutral drift — distant populations are not more acoustically different than nearby ones. That this anti-IBD pattern recurs in 7 of 8 individual features (not only the PCA distance) makes it unlikely to be a fluke of one model and further weakens a pure-drift explanation; it is more consistent with song divergence being driven by local factors (habitat acoustics, drift in small founder populations, or selective pressures such as sympatry with congeners) than by isolation by distance per se, though the small number of population pairs still means this should be treated as a hypothesis for the sympatry-focused steps rather than a confirmed result.
 :::
 
 # Complex songs
@@ -502,6 +697,198 @@ extended_summary(
 
 ```
 
+## Feature-based acoustic distance
+
+The two models above were refitted separately for each acoustic feature used in the per-feature sympatry models (Step 2): peak frequency, number of elements, song duration, song rate, gap duration, frequency range, element diversity (mst) and the element-level PCA distance. Each per-feature distance is the absolute difference between the two songs (Euclidean distance on song-averaged element-level PCs for `elm_pca`). As for the PCA-based distance, each response is standardized within its own model dataset, with the same formulas, random effects and regularizing priors. Because response and priors are on the same standardized scale, the prior predictive checks above also apply to these models. Pairs with a missing feature value (e.g. songs without element-level measurements) are dropped from that feature's models only.
+
+Range-wide variation by feature (mean between-population distance divided by mean within-population distance; values > 1 mean songs are population-structured for that feature):
+
+```{r feature ratio table complex}
+
+feature_vars_complex <- intersect(
+  c(names(song_feature_distances), "elm_pca_distance"),
+  names(ps_model_dat_complex)
+)
+
+feature_ratio_complex <- do.call(rbind, lapply(c("acoustic_distance", feature_vars_complex), function(v) {
+  do.call(rbind, lapply(split(ps_model_dat_complex, ps_model_dat_complex$species, drop = TRUE), function(s) {
+    data.frame(
+      feature = gsub("_distance$", "", v),
+      species = as.character(s$species[1]),
+      between_within_ratio = round(
+        mean(s[[v]][s$same_population == "0"], na.rm = TRUE) /
+          mean(s[[v]][s$same_population == "1"], na.rm = TRUE), 3)
+    )
+  }))
+}))
+
+print(reshape(feature_ratio_complex, idvar = "feature", timevar = "species", direction = "wide"))
+
+```
+
+```{r population structure models by feature complex}
+#| eval: false
+
+for (v in feature_vars_complex) {
+
+  resp <- paste0(v, "_sc")
+
+  cat("\n=============================\n")
+  cat("Fitting:", resp, "\n")
+  cat("=============================\n")
+
+  # within vs. between populations
+  dat <- ps_model_dat_complex[!is.na(ps_model_dat_complex[[v]]), ]
+  dat[[resp]] <- as.numeric(scale(dat[[v]]))
+
+  brm(
+    formula = bf(as.formula(paste0(
+      resp, " ~ species + species:same_population + ",
+      "(1 | mm(pop1, pop2)) + (1 | mm(individual1, individual2))"
+    ))),
+    data = dat,
+    family = gaussian(),
+    prior = priors_ws,
+    cores = 4,
+    chains = 4,
+    iter = 10000,
+    backend = "cmdstanr",
+    threads = threading(8),
+    control = list(adapt_delta = 0.95, max_treedepth = 15),
+    file = paste0("./data/processed/fits/", resp, "_population_structure_complex_fit")
+  )
+
+  # isolation by distance among populations
+  dat_ibd <- dat[dat$same_population == "0", ]
+  dat_ibd[[resp]] <- as.numeric(scale(dat_ibd[[v]]))
+  dat_ibd$geo_distance_sc <- as.numeric(scale(dat_ibd$geo_distance))
+
+  brm(
+    formula = bf(as.formula(paste0(
+      resp, " ~ species + species:geo_distance_sc + ",
+      "(1 | mm(pop1, pop2)) + (1 | mm(individual1, individual2))"
+    ))),
+    data = dat_ibd,
+    family = gaussian(),
+    prior = priors_ws,
+    cores = 4,
+    chains = 4,
+    iter = 10000,
+    backend = "cmdstanr",
+    threads = threading(8),
+    control = list(adapt_delta = 0.95, max_treedepth = 15),
+    file = paste0("./data/processed/fits/", resp, "_isolation_by_distance_complex_fit")
+  )
+}
+
+```
+
+```{r feature model files complex}
+
+# per-feature fits that have finished, preceded by the PCA-based fit for
+# comparison; missing files (models not yet fitted) are skipped
+ps_feature_files_complex <- c(
+  "./data/processed/fits/population_structure_complex_fit.rds",
+  paste0("./data/processed/fits/", feature_vars_complex, "_sc_population_structure_complex_fit.rds")
+)
+ps_feature_files_complex <- ps_feature_files_complex[file.exists(ps_feature_files_complex)]
+
+ibd_feature_files_complex <- c(
+  "./data/processed/fits/isolation_by_distance_complex_fit.rds",
+  paste0("./data/processed/fits/", feature_vars_complex, "_sc_isolation_by_distance_complex_fit.rds")
+)
+ibd_feature_files_complex <- ibd_feature_files_complex[file.exists(ibd_feature_files_complex)]
+
+```
+
+### Within vs. between populations, by feature
+
+Species-specific difference between within- and between-population pairs (`species:same_population1`, in SD units of each feature's distance; negative = songs more similar within populations). `acoustic` is the PCA-based model above, shown for comparison.
+
+```{r population structure effects by feature complex}
+#| fig-height: 6
+#| fig-width: 10
+
+ps_feature_tab_complex <- feature_effects_table(ps_feature_files_complex, term = "same_population1")
+
+plot_feature_effects(ps_feature_tab_complex, xlab = "Within- vs. between-population difference (SD)")
+
+if (!is.null(ps_feature_tab_complex)) print(ps_feature_tab_complex)
+
+```
+
+### Isolation by distance, by feature
+
+Species-specific slope of acoustic distance on geographic distance among populations (`species:geo_distance_sc`, both standardized; positive = more distant populations sing more differently). As for the PCA-based model, these slopes rest on very few population pairs and are descriptive.
+
+```{r isolation by distance effects by feature complex}
+#| fig-height: 6
+#| fig-width: 10
+
+ibd_feature_tab_complex <- feature_effects_table(ibd_feature_files_complex, term = "geo_distance_sc")
+
+plot_feature_effects(ibd_feature_tab_complex, xlab = "Isolation-by-distance slope (SD per SD)")
+
+if (!is.null(ibd_feature_tab_complex)) print(ibd_feature_tab_complex)
+
+```
+
+::: {.callout-note collapse="true"}
+### Per-feature model results
+
+```{r population structure feature summaries complex}
+#| results: "asis"
+
+for (i in c(ps_feature_files_complex[-1], ibd_feature_files_complex[-1])) {
+
+  cat("#### ", tools::file_path_sans_ext(basename(i)), "\n\n")
+
+  extended_summary(
+    read.file = i,
+    highlight = TRUE,
+    trace.palette = viridis::mako,
+    remove.intercepts = TRUE,
+    print.name = FALSE
+  )
+
+  cat("\n\n")
+}
+
+```
+:::
+
+::: {.callout-note collapse="true"}
+### Per-feature posterior predictive checks
+
+```{r population structure feature ppc complex}
+#| results: "asis"
+#| fig-height: 3.5
+
+for (i in c(ps_feature_files_complex[-1], ibd_feature_files_complex[-1])) {
+
+  fit <- tryCatch(readRDS(i), error = function(e) NULL)
+  if (is.null(fit)) next
+
+  model_name <- tools::file_path_sans_ext(basename(i))
+
+  cat("\n\n**", model_name, "**\n\n", sep = "")
+
+  # base::print - the document redefines print() as a kable wrapper
+  base::print(
+    pp_check(fit, type = "dens_overlay", ndraws = 50) +
+      labs(title = model_name)
+  )
+
+  cat("\n\n")
+
+  rm(fit)
+  invisible(gc(verbose = FALSE))
+}
+
+```
+:::
+
+
 ::: {.alert .alert-info}
 ## Summary {.unnumbered .unlisted}
 
@@ -509,11 +896,15 @@ extended_summary(
 
 -   The within- vs. between-population effect is not credible for *Hypoxantha* (0.019 SD, 95% CI [-0.028, 0.065], overlapping zero and even slightly positive in direction) and is credible but smaller than in simple songs for *Ruficollis* (-0.267 SD, 95% CI [-0.371, -0.165]).
 -   Isolation by distance is not credible for either species (*Hypoxantha*: -0.889 SD, 95% CI [-2.671, 0.428]; *Ruficollis*: -0.030 SD, 95% CI [-1.388, 1.327]), with very wide intervals reflecting the small number of independent population pairs.
+-   The per-feature within- vs. between-population models show *Hypoxantha*'s near-null PCA result is not hiding a richer signal: only element-level PCA distance (-1.233, 95% CI [-1.272, -1.194]) and element diversity/mst (-0.057, barely credible) are credible; the other 6 song-level features (frequency range, gap duration, peak frequency, number of elements, song duration, song rate) are not credible. *Ruficollis* is more structured but still patchier than in simple songs: PCA distance, element-level PCA, frequency range, element diversity/mst, number of elements and song duration are credible and negative, while gap duration, peak frequency and song rate are not.
+-   The per-feature isolation-by-distance models show almost nothing credible anywhere except *Hypoxantha*'s element-level PCA distance (-2.343, 95% CI [-3.267, -1.399]); every other feature in both species, including all 8 features for *Ruficollis*, is not credible.
 
 ### Interpretation {.unnumbered .unlisted}
 
 -   Unlike simple songs, complex songs carry little to no detectable population-level geographic signal in *Hypoxantha*, and a weaker signal than simple songs in *Ruficollis*.
 -   This asymmetry suggests complex songs are more stereotyped/conserved across each species' range — plausibly because they are under stronger stabilizing selection (e.g., species or mate recognition), are more constrained by shared motor templates, or are simply noisier measurements given fewer recordings per population.
+-   The per-feature breakdown sharpens this picture: in *Hypoxantha*, complex-song population structure is almost entirely confined to fine element-level acoustic detail (element-level PCA distance), not to any whole-song descriptor, so the species' songs can look stereotyped at the song level while individual elements still carry a local signature. *Ruficollis* retains structuring across more features than *Hypoxantha*, but in fewer features than its own simple songs (6 of 9 vs. 9 of 9), reinforcing that complex songs carry a patchier geographic signal overall.
+-   The multi-feature anti-isolation-by-distance pattern that was so consistent in simple-song *Ruficollis* (Simple songs summary above) is essentially absent in complex songs — none of its 8 features show a credible relationship with geographic distance here. Whatever process produces that "more distant populations sound more alike" pattern in *Ruficollis*, it appears specific to simple-song structure rather than a general property of the species' vocal behavior.
 -   Practically, Step 3's test for sympatry-driven shifts has much less population-level variation to work with for complex songs than for simple songs, so any sympatry effect detected later for complex songs is acting on a flatter geographic baseline.
 :::
 

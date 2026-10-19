@@ -338,6 +338,93 @@ plot_df$predictor <- gsub("sympatry1", "Sympatry", plot_df$predictor)
     )
 }
 
+# posterior distribution of a single predictor (default: the sympatry
+# effect) for a set of saved brms fits, one row per model/response - a
+# half-eye (density + median + 95% credible interval) per row, so the
+# shape and width of the posterior is visible rather than collapsing it
+# to one number as plot_brms_heatmap() does. Skips missing/unreadable
+# files so it can be run while models are still fitting.
+plot_posterior_distributions <- function(
+    model_files,
+    variable = "b_sympatry1",
+    xlab = "Sympatry effect (SD)"
+) {
+
+  if (length(model_files) == 0) {
+    message("plot_posterior_distributions: no model files found yet - skipping.")
+    return(invisible(NULL))
+  }
+
+  draws_df <- data.frame()
+
+  for (i in seq_along(model_files)) {
+
+    fit <- tryCatch(readRDS(model_files[i]), error = function(e) NULL)
+
+    if (is.null(fit)) {
+      message(
+        "plot_posterior_distributions: could not read '", model_files[i],
+        "' (likely still being written) - skipping."
+      )
+      next
+    }
+
+    response <- deparse(fit$formula$formula[[2]])
+
+    draws <- brms::as_draws_df(fit, variable = variable)
+
+    draws_df <- rbind(
+      draws_df,
+      data.frame(value = draws[[variable]], response = response)
+    )
+
+    rm(fit)
+  }
+
+  if (nrow(draws_df) == 0) {
+    message("plot_posterior_distributions: no readable model results yet - skipping.")
+    return(invisible(NULL))
+  }
+
+  # clean response labels (same convention as plot_brms_heatmap())
+  draws_df$response <- gsub("^mi", "", draws_df$response)
+  draws_df$response <- gsub("_sc$", "", draws_df$response)
+  draws_df$response <- gsub("_distance$", "", draws_df$response)
+  draws_df$response[draws_df$response == "acoustic"] <- "acoustic (PCA)"
+
+  # credible (95% CI excludes zero), used to highlight rows
+  ci <- do.call(rbind, lapply(split(draws_df$value, draws_df$response), function(x) {
+    q <- quantile(x, c(0.025, 0.975))
+    data.frame(lower = q[[1]], upper = q[[2]])
+  }))
+  ci$response <- rownames(ci)
+  ci$credible <- ci$lower > 0 | ci$upper < 0
+  rownames(ci) <- NULL
+
+  draws_df <- merge(draws_df, ci[, c("response", "credible")], by = "response")
+
+  # order responses by posterior median (most negative at bottom)
+  med_ord <- aggregate(value ~ response, draws_df, median)
+  draws_df$response <- factor(
+    draws_df$response,
+    levels = med_ord$response[order(med_ord$value)]
+  )
+
+  ggplot(draws_df, aes(x = value, y = response, fill = credible)) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "grey60") +
+    ggdist::stat_halfeye(
+      .width = 0.95,
+      point_interval = "median_qi",
+      slab_alpha = 0.7
+    ) +
+    scale_fill_manual(
+      values = c("TRUE" = "#5FA98A", "FALSE" = "grey70"),
+      guide = "none"
+    ) +
+    labs(x = xlab, y = NULL) +
+    theme_classic()
+}
+
 # table of fixed-effect estimates (posterior mean, SE and 95% uncertainty
 # interval) for a set of saved brms fits, one row per model x predictor;
 # skips missing/unreadable files so it can be run while models are still
@@ -574,15 +661,18 @@ species_pair_sympatry_effects <- function(fit, digits = 3) {
     names(diffs) <- c("Contrast", "Difference", "l-95% UI", "u-95% UI", "UI excludes 0")
   }
 
-  plot_df <- cf
-  plot_df$species_pair <- factor(plot_df$species_pair, levels = rev(cf$species_pair))
-  plot_df$type <- ifelse(plot_df$species_pair == "Pooled (fixed effect)", "Pooled", "Species pair")
+  # the pooled (fixed-effect) row is kept in `effects` for completeness but
+  # dropped from the plot - with only 3 species pairs its UI is dominated by
+  # the poorly-identified between-pair variance and routinely crosses zero
+  # even when every individual pair does not, which reads as contradicting
+  # the per-pair evidence rather than as a modeling artifact
+  plot_df <- cf[cf$species_pair != "Pooled (fixed effect)", ]
+  plot_df$species_pair <- factor(plot_df$species_pair, levels = rev(plot_df$species_pair))
 
-  p <- ggplot(plot_df, aes(x = Estimate, y = species_pair, color = type)) +
+  p <- ggplot(plot_df, aes(x = Estimate, y = species_pair)) +
     geom_vline(xintercept = 0, linetype = "dashed", color = "grey60") +
-    geom_errorbar(aes(xmin = Q2.5, xmax = Q97.5), width = 0, orientation = "y", linewidth = 1) +
-    geom_point(size = 3) +
-    scale_color_manual(values = c("Species pair" = "#403B78", "Pooled" = "#5FA98A"), guide = "none") +
+    geom_errorbar(aes(xmin = Q2.5, xmax = Q97.5), width = 0, orientation = "y", linewidth = 1, color = "#403B78") +
+    geom_point(size = 3, color = "#403B78") +
     labs(x = "Sympatry effect (SD of acoustic distance) with 95% UI", y = NULL) +
     theme_classic()
 
@@ -893,11 +983,30 @@ haversine_km <- function(lat1, lon1, lat2, lon2) {
   6371 * 2 * atan2(sqrt(a), sqrt(1 - a))
 }
 
+# per-feature distances shared by the sympatry models (Step 2) and the
+# population structure models (Step 1): name = distance column, value = the
+# song-level feature it is computed from (absolute difference between songs)
+song_feature_distances <- c(
+  meanpeakf_distance    = "meanpeakf",
+  numelms_distance      = "num.elms",
+  songduration_distance = "song.duration",
+  songrate_distance     = "song.rate",
+  gapduration_distance  = "gap.duration",
+  freqrange_distance    = "freq.range.Min5toMax95",
+  mst_distance          = "mst"
+)
+
 # every unique song x song pair (conspecific and heterospecific) with the
 # PCA-based Euclidean acoustic distance (same definition as in the sympatry
 # models), species / population / individual of each song, species-specific
-# population IDs and geographic distance between the two recordings
-all_song_pairs <- function(df, pcs) {
+# population IDs and geographic distance between the two recordings.
+# Optionally adds per-feature distances:
+#   features: named vector as song_feature_distances (absolute differences of
+#             song-level features, same as the per-feature sympatry models)
+#   elm_dist: song x song distance matrix from the element-level PCA (row and
+#             column names = song IDs); added as elm_pca_distance (NA for
+#             songs without element-level data)
+all_song_pairs <- function(df, pcs, features = NULL, elm_dist = NULL) {
 
   d <- as.matrix(dist(df[, pcs], method = "euclidean"))
   idx <- which(upper.tri(d), arr.ind = TRUE)
@@ -917,6 +1026,18 @@ all_song_pairs <- function(df, pcs) {
     geo_distance = haversine_km(df$Lat[i], df$Lon[i], df$Lat[j], df$Lon[j]),
     stringsAsFactors = FALSE
   )
+
+  for (v in names(features)) {
+    x <- as.numeric(df[[features[[v]]]])
+    out[[v]] <- abs(x[i] - x[j])
+  }
+
+  if (!is.null(elm_dist)) {
+    out$elm_pca_distance <- elm_dist[cbind(
+      match(out$id1, rownames(elm_dist)),
+      match(out$id2, colnames(elm_dist))
+    )]
+  }
 
   out$pop1 <- paste(out$species1, out$population1, sep = ".")
   out$pop2 <- paste(out$species2, out$population2, sep = ".")
@@ -1081,3 +1202,61 @@ prior_check_plot <- function(fit, title) {
       subtitle = "y: observed standardized acoustic distance; y_rep: draws from the priors only"
     )
 }
+
+# ---- Step 1: per-feature effects --------------------------------------------
+# species-specific effect of interest (e.g. "same_population1" or
+# "geo_distance_sc") from a set of saved per-feature fits, one row per
+# feature x species; skips missing/unreadable files
+feature_effects_table <- function(model_files, term, digits = 3) {
+
+  rows <- lapply(model_files, function(f) {
+    fit <- tryCatch(readRDS(f), error = function(e) NULL)
+    if (is.null(fit)) return(NULL)
+    fe <- as.data.frame(fixef(fit))
+    fe <- fe[grepl(paste0(":", term, "$"), rownames(fe)), , drop = FALSE]
+    if (nrow(fe) == 0) return(NULL)
+    fe$species <- sub("^species", "", sub(paste0(":", term, "$"), "", rownames(fe)))
+    fe$feature <- gsub("_distance(_sc)?$", "", deparse(fit$formula$formula[[2]]))
+    rm(fit)
+    invisible(gc(verbose = FALSE))
+    fe
+  })
+
+  out <- do.call(rbind, rows)
+
+  if (is.null(out) || nrow(out) == 0) {
+    message("feature_effects_table: no readable model results yet - skipping.")
+    return(invisible(NULL))
+  }
+
+  rownames(out) <- NULL
+  out$ui_excludes_zero <- ifelse(out$Q2.5 > 0 | out$Q97.5 < 0, "yes", "no")
+  out <- out[, c("feature", "species", "Estimate", "Est.Error", "Q2.5", "Q97.5", "ui_excludes_zero")]
+  out[, 3:6] <- round(out[, 3:6], digits)
+  names(out) <- c("Feature", "Species", "Estimate", "SE", "l-95% UI", "u-95% UI", "UI excludes 0")
+
+  out[order(out$Species, out$Feature), ]
+}
+
+# forest plot of a feature_effects_table(): one row per feature, one panel
+# per species; filled circles mark effects whose 95% UI excludes zero
+plot_feature_effects <- function(tab, xlab) {
+
+  if (is.null(tab)) return(invisible(NULL))
+
+  tab$Feature <- factor(tab$Feature, levels = rev(sort(unique(tab$Feature))))
+  tab$excl <- factor(tab$`UI excludes 0`, levels = c("no", "yes"))
+
+  ggplot(tab, aes(x = Estimate, y = Feature)) +
+    geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
+    geom_errorbarh(aes(xmin = `l-95% UI`, xmax = `u-95% UI`, colour = excl), height = 0, linewidth = 0.8) +
+    geom_point(aes(colour = excl, shape = excl), size = 3, stroke = 1) +
+    facet_wrap(~ Species, nrow = 1) +
+    scale_colour_manual(values = c(no = "grey55", yes = viridis::mako(1, begin = 0.4)),
+                        name = "95% UI excludes 0", drop = FALSE) +
+    scale_shape_manual(values = c(no = 1, yes = 16),
+                       name = "95% UI excludes 0", drop = FALSE) +
+    labs(x = xlab, y = NULL) +
+    theme(legend.position = "bottom")
+}
+

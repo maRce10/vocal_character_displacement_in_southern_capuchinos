@@ -17,14 +17,94 @@ The analysis starts with a [data preparation](scripts/0_data_preparation.qmd) re
 
 Step 3 can only be tested for hypoxantha and ruficollis relative to each other, because iberaensis and palustris were recorded at a single locality. It rests on very few populations per contrast (2 vs. 2 for ruficollis, 1 vs. 2 for hypoxantha), and single-site contrasts are confounded with anything else particular to that locality. It is therefore presented as supporting evidence, and the size of any co-occurrence shift is compared with ordinary between-population differences.
 
+```{r setup}
+#| echo: false
+#| message: false
+#| warning: false
+
+if (!requireNamespace("sketchy", quietly = TRUE)) {
+  install.packages("sketchy")
+}
+
+packages <- c("dplyr", "ggplot2", "ggtext", "brms", github = "maRce10/brmsish")
+
+sketchy::load_packages(packages = packages)
+
+theme_set(theme_classic(base_size = 16))
+
+source("./scripts/functions.R")
+
+# the 8 acoustic features shared by Steps 1 and 2 (see
+# song_feature_distances in functions.R), plus the element-level PCA
+# distance
+feature_vars <- c(
+  "meanpeakf_distance", "numelms_distance", "songduration_distance",
+  "songrate_distance", "gapduration_distance", "freqrange_distance",
+  "mst_distance", "elm_pca_distance"
+)
+```
+
 ::: {.alert .alert-info}
 
 ## Main results
 
--   **Population structure (Step 1).** Simple songs are population-structured in both testable species, more strongly in *Ruficollis* than in *Hypoxantha*. Complex songs show little to no structuring in *Hypoxantha* and weaker structuring than simple songs in *Ruficollis*. Neither song type shows a clear isolation-by-distance signal, so this local structure is not simply accumulating with geographic distance.
--   **Sympatry (Step 2).** Simple heterospecific songs are credibly more divergent in sympatry than in allopatry, and consistently so across all three testable species pairs — the pattern predicted by sound-based character displacement. Complex songs show the same direction of effect but far weaker overall, driven mainly by one species pair (*Hypoxantha*-*Palustris*); at the trait level, complex-song divergence in sympatry is a mosaic, with element-level acoustic distance, gap duration, frequency range and element diversity increasing in sympatry while peak frequency and song rate actually *converge*.
+-   **Population structure (Step 1).** Simple songs are population-structured in both testable species, more strongly and more pervasively in *Ruficollis* (credible in all 8 individual acoustic features) than in *Hypoxantha* (credible mainly in spectral/element-level features, not temporal pacing). Complex songs show little to no structuring in *Hypoxantha* (confined almost entirely to element-level acoustic detail) and weaker, patchier structuring than simple songs in *Ruficollis*. Neither song type shows the expected isolation-by-distance signal overall; where a credible slope exists, it runs in the opposite direction — simple-song *Ruficollis* populations that are geographically farther apart are acoustically *more* similar, a pattern that recurs across 7 of 8 individual features, making a neutral-drift explanation for this species' population structure unlikely.
+-   **Sympatry (Step 2).** Simple heterospecific songs are credibly more divergent in sympatry than in allopatry — the pattern predicted by sound-based character displacement — and this holds for 7 of 8 individual acoustic features, several of which (element diversity, frequency range, element-level acoustic distance) show effects roughly double the overall PCA-based model. Complex songs show the same direction of effect overall but far weaker, and the per-feature breakdown there is a mosaic rather than a uniform shift. In both song types, however, peak frequency and song rate specifically *converge* rather than diverge in sympatry — the same two features behave the same way in both simple and complex songs, pointing to convergent selection on those particular traits (e.g. shared habitat acoustics or interspecific signalling) acting alongside divergence in most other traits.
 -   **Population shifts (Step 3).** No credible population-level shifts (convergence or divergence) were detected for either song type. Only one species pair (*Hypoxantha* vs. *Ruficollis*) has enough co-occurrence structure to test, so this null result reflects very limited statistical power rather than evidence against a shift.
--   Overall, the clearest and best-supported evidence for character displacement in this system is the simple-song sympatry effect in Step 2; complex songs and the population-shift framing provide weaker, more qualified support.
+-   Overall, the clearest and best-supported evidence for character displacement in this system is the simple-song sympatry effect in Step 2, reinforced by a largely consistent per-feature signal. Complex songs and the population-shift framing provide weaker, more qualified support, and the recurring convergence in peak frequency and song rate across both song types suggests a secondary, opposite-direction process acting specifically on those two traits.
+
+### Population structure, by feature (Step 1)
+
+```{r step1 figure}
+#| echo: false
+#| fig-height: 5
+#| fig-width: 9
+#| fig-cap: "Species-specific within- vs. between-population difference in acoustic distance for simple songs (SD units; negative = songs more similar within populations). `acoustic` is the overall PCA-based distance; the rest are individual acoustic features. Filled points are credible (95% CI excludes zero)."
+
+ps_feature_files <- c(
+  "./data/processed/fits/population_structure_simple_fit.rds",
+  paste0("./data/processed/fits/", feature_vars, "_sc_population_structure_simple_fit.rds")
+)
+ps_feature_files <- ps_feature_files[file.exists(ps_feature_files)]
+
+ps_feature_tab <- feature_effects_table(ps_feature_files, term = "same_population1")
+
+plot_feature_effects(ps_feature_tab, xlab = "Within- vs. between-population difference (SD)")
+```
+
+*Ruficollis* (right panel) is credible and negative for every feature. *Hypoxantha* (left panel) is credible and negative for the spectral/element-level features (`elm_pca`, `freqrange`, `mst`, `numelms`); `gapduration` and `meanpeakf` are also credible but tiny and in the *opposite* direction (between-population pairs very slightly more similar); only `songduration` and `songrate` are not credible (95% CI includes zero). See [Step 1](scripts/1_population_structure.qmd) for the isolation-by-distance results and the complex-song version of this figure.
+
+### Sympatry effect, by feature (Step 2)
+
+```{r step2 figure simple}
+#| echo: false
+#| fig-height: 6
+#| fig-width: 7
+#| fig-cap: "Posterior distribution of the sympatry effect (SD units) for every acoustic feature, simple songs. Green = 95% credible interval excludes zero."
+
+model_files_simple <- list.files("./data/processed/fits", pattern = "\\.rds$", full.names = TRUE)
+model_files_simple <- grep("simple", model_files_simple, value = TRUE)
+model_files_simple <- grep("sympatry_only_simple_fit", model_files_simple, value = TRUE)
+model_files_simple <- grep("by_species_pair|prior_only", model_files_simple, value = TRUE, invert = TRUE)
+
+plot_posterior_distributions(model_files = model_files_simple)
+```
+
+```{r step2 figure complex}
+#| echo: false
+#| fig-height: 6
+#| fig-width: 7
+#| fig-cap: "Same plot for complex songs. Note the much larger x-axis range, driven by the element-level PCA distance (`elm_pca`)."
+
+model_files_complex <- list.files("./data/processed/fits", pattern = "\\.rds$", full.names = TRUE)
+model_files_complex <- grep("complex", model_files_complex, value = TRUE)
+model_files_complex <- grep("sympatry_only_complex_fit", model_files_complex, value = TRUE)
+model_files_complex <- grep("by_species_pair|prior_only", model_files_complex, value = TRUE, invert = TRUE)
+
+plot_posterior_distributions(model_files = model_files_complex)
+```
+
+Both song types show the same two-feature exception to an otherwise mostly-divergent pattern: `meanpeakf` and `songrate` are the only features with a credibly *negative* sympatry effect in both plots, while most other features (and the overall `acoustic (PCA)` distance) are credibly positive. For complex songs, `elm_pca` stands out as far larger than everything else, including the overall PCA-based distance — the element-level signal is diluted when averaged into the whole-song measure. See [Step 2](scripts/2_sympatry_and_heterospecific_distances.qmd) for species-pair-level detail and full model diagnostics.
 
 :::
 
